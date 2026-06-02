@@ -84,7 +84,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 <div id="home">
   <h1>🏗️ BuilderLand</h1>
-  <p>Build and share your own platformer levels!</p>
+  <p>Build and share your own platformer levels! Made by C.H.</p>
   <div class="menu-buttons">
     <button id="btnCreate">🛠️ Create Game</button>
     <button id="btnExplore">🌍 Explore Games</button>
@@ -145,7 +145,11 @@ async function pushGame(game) {
   });
 
   const data = await res.json();
-  const games = data.record || [];
+  let games = data.record;
+
+if (!Array.isArray(games)) {
+  games = [];
+}
 
   games.push(game);
 
@@ -323,18 +327,33 @@ async function pushGame(game) {
       spawnPoint:spawnPoint
     };
 
-    pushGame(game).then(function(){
-      localStorage.setItem("lastPublishTime",Date.now().toString());
-      startCooldownUI();
-      statusMsg.textContent="🎉 Published! Everyone can see it in Explore.";
-      setTimeout(()=>statusMsg.textContent="",4000);
-    }).catch(function(e){
-      console.error("Publish failed:",e);
-      alert("Publish failed: "+e.message);
-      startCooldownUI();
-      statusMsg.textContent="";
-    });
+ async function pushGame(game) {
+  const res = await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c/latest", {
+    method: "GET",
+    headers: {
+      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
+    }
+  });
+
+  const data = await res.json();
+
+  let games = data.record;
+
+  if (!Array.isArray(games)) {
+    games = [];
   }
+
+  games.push(game);
+
+  await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG
+    },
+    body: JSON.stringify(games)
+  });
+}
 
   function shareLink(){
     var title=document.getElementById("titleInput").value||"Untitled Game";
