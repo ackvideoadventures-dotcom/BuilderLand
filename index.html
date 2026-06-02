@@ -2,117 +2,52 @@
 <html>
 <head>
 <title>BuilderLand</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;900&display=swap');
 
-:root {
-  --green: #4CAF50;
-  --blue: #2196F3;
-  --pink: #E91E63;
-  --teal: #009688;
-  --orange: #FF9800;
-  --purple: #9C27B0;
-  --dark-purple: #673AB7;
-  --indigo: #3F51B5;
-  --cyan: #00BCD4;
-  --yellow: #FFC107;
-  --gray: #607D8B;
-  --brown: #795548;
-  --red: #F44336;
- --bg: #ffffff;
-  --card: #16213e;
-  --surface: #ffffff;
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  text-align: center;
+  background: #111;
+  color: white;
 }
 
-* { box-sizing: border-box; }
-body { font-family: 'Nunito', sans-serif; text-align: center; margin: 0; background: var(--bg); color: #eee; }
+#home {
+  padding: 60px;
+}
 
-/* ── Home ── */
-#home { padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 24px; min-height: 100vh; justify-content: center; }
-#home h1 { font-family: 'Press Start 2P', monospace; font-size: 2.2em; margin: 0 0 6px 0; color: #fff; text-shadow: 0 0 20px rgba(33,150,243,0.8), 0 4px 0 #0d47a1; letter-spacing: 2px; }
-#home p { color: #aac; font-size: 1.1em; margin: 0; }
-#home .menu-buttons { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
-#home .menu-buttons button { font-family: 'Nunito', sans-serif; font-size: 1.2em; padding: 18px 44px; border-radius: 14px; border: none; cursor: pointer; font-weight: 900; transition: transform 0.12s, box-shadow 0.12s; letter-spacing: 0.5px; }
-#home .menu-buttons button:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-#btnCreate  { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #0a3d2e; }
-#btnExplore { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #0a2040; }
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+}
 
-/* ── Editor ── */
-#editorContainer { display: none; height: 100vh; overflow-y: auto; background: var(--bg); }
-#creatorPanel { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 20px; }
-#titleInput { background: var(--card); border: 2px solid var(--surface); color: #eee; border-radius: 8px; padding: 8px 14px; font-size: 1em; font-family: 'Nunito', sans-serif; font-weight: 700; outline: none; width: 260px; }
-#titleInput:focus { border-color: var(--blue); }
-#toolbar { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
-button { padding: 8px 14px; cursor: pointer; border-radius: 8px; border: none; font-size: 0.9em; font-family: 'Nunito', sans-serif; font-weight: 700; transition: opacity 0.1s, transform 0.1s; }
-button:hover:not(:disabled) { opacity: 0.88; transform: scale(1.04); }
-button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-#editor { border: 3px solid var(--surface); border-radius: 8px; background: #fff; display: block; }
+#editorContainer {
+  display: none;
+}
 
-/* ── Explore ── */
-#explorePage { display: none; min-height: 100vh; padding: 30px 20px; background: var(--bg); }
-#explorePage h2 { font-family: 'Press Start 2P', monospace; font-size: 1.3em; color: #fff; text-shadow: 0 0 12px rgba(33,150,243,0.6); margin-bottom: 20px; }
-.gameCard { background: var(--card); border: 1px solid var(--surface); margin: 10px auto; padding: 16px 20px; max-width: 420px; border-radius: 14px; text-align: left; transition: transform 0.12s, box-shadow 0.12s; }
-.gameCard:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
-.gameCard h3 { margin: 0 0 6px 0; color: #fff; font-size: 1.1em; }
-.gameCard small { color: #88a; font-size: 0.82em; }
+#explorePage {
+  display: none;
+}
 
-/* ── Toolbar button colors ── */
-#btnSmall    { background: var(--purple); color: white; }
-#btnNormal   { background: var(--dark-purple); color: white; }
-#btnBig      { background: var(--indigo); color: white; }
-#btnGravity  { background: var(--orange); color: white; }
-#btnBlock    { background: var(--gray); color: white; }
-#btnThin     { background: var(--brown); color: white; }
-#btnTriangle { background: var(--red); color: white; }
-#btnSpawn    { background: var(--cyan); color: #222; }
-#btnWin      { background: var(--yellow); color: #333; }
-#btnSave     { background: var(--green); color: white; }
-#btnLoad     { background: var(--blue); color: white; }
-#btnPublish  { background: var(--pink); color: white; }
-#btnShareLink{ background: var(--teal); color: white; }
-#btnHome     { background: #555; color: white; }
-#btnBackExplore { background: #555; color: white; margin-bottom: 16px; }
-
-.explore-back { background: #444; color: #eee; margin-bottom: 20px; }
-.play-btn { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #0a3d2e; font-weight: 900; margin-top: 10px; }
-.selected-tool { outline: 3px solid #fff; outline-offset: 2px; }
-
-#statusMsg { font-size: 0.88em; color: #aac; min-height: 1.2em; }
+canvas {
+  background: white;
+  border: 2px solid black;
+}
 </style>
 </head>
+
 <body>
 
 <div id="home">
-  <h1>🏗️ BuilderLand</h1>
-  <p>Build and share your own platformer levels! Made by C.H.</p>
-  <div class="menu-buttons">
-    <button id="btnCreate">🛠️ Create Game</button>
-    <button id="btnExplore">🌍 Explore Games</button>
-  </div>
+  <h1>BuilderLand</h1>
+  <button id="btnCreate">Create</button>
+  <button id="btnExplore">Explore</button>
 </div>
 
 <div id="editorContainer">
-  <div id="creatorPanel">
-    <input id="titleInput" placeholder="Game title" />
-    <div id="toolbar">
-      <button id="btnSmall">🔹 Small</button>
-      <button id="btnNormal">🔷 Normal</button>
-      <button id="btnBig">🟦 Big</button>
-      <button id="btnGravity">🌍 Gravity: ON</button>
-      <button id="btnBlock">⬛ Square</button>
-      <button id="btnThin">➖ Thin</button>
-      <button id="btnTriangle">🔺 Triangle</button>
-      <button id="btnSpawn">🏁 Spawn</button>
-      <button id="btnWin">⭐ Win</button>
-      <button id="btnSave">💾 Save</button>
-      <button id="btnLoad">📂 Load</button>
-      <button id="btnPublish">🚀 Publish</button>
-      <button id="btnShareLink">🔗 Share Link</button>
-      <button id="btnHome">🏠 Home</button>
-    </div>
-    <div id="statusMsg"></div>
-    <canvas id="editor" width="800" height="500"></canvas>
-  </div>
+  <button id="btnPublish">Publish</button>
+  <canvas id="editor" width="800" height="500"></canvas>
 </div>
 
 <div id="explorePage"></div>
@@ -120,13 +55,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 <script>
 (function () {
 
-  // ── Shared server storage for published games ─────────────────────────────
-  // Uses window.storage (shared: true) — all visitors see the same game list.
-  // Games stored individually as "games:<id>" so writes don't overwrite each other.
+const API_URL = window.location.origin;
 
-async function fetchGames() {
+ async function fetchGames() {
   try {
-    const res = await fetch("http://localhost:3000/games");
+    const res = await fetch(API_URL + "/games");
     return await res.json();
   } catch (e) {
     console.error("Failed to load games:", e);
@@ -134,276 +67,152 @@ async function fetchGames() {
   }
 }
 
-  // ── Game state ─────────────────────────────────────────────────────────────
-  var canvas = document.getElementById("editor");
-  var ctx = canvas.getContext("2d");
-  var home = document.getElementById("home");
-  var editorContainer = document.getElementById("editorContainer");
-  var explorePage = document.getElementById("explorePage");
-  var statusMsg = document.getElementById("statusMsg");
-
-  var selectedTool = "block", selectedSize = "normal";
-  var gravityOnNewBlocks = true, loopRunning = false, hasWon = false;
-  var gravity = 0.5;
-  var player = { x:380, y:200, spawnX:380, spawnY:200, width:40, height:40, vx:0, vy:0, onGround:false };
-  var blocks = [], triangles = [], wins = [];
-  var spawnPoint = null;
-
-  function getSize() { return selectedSize==="small"?25:selectedSize==="big"?80:50; }
-
-  var PUBLISH_COOLDOWN_MS = 60000;
-  function getCooldownRemaining() {
-    return Math.max(0, PUBLISH_COOLDOWN_MS - (Date.now() - parseInt(localStorage.getItem("lastPublishTime")||"0",10)));
-  }
-  function startCooldownUI() {
-    var btn = document.getElementById("btnPublish");
-    function tick() {
-      var rem = getCooldownRemaining();
-      if (rem<=0) { btn.disabled=false; btn.textContent="🚀 Publish"; }
-      else { btn.disabled=true; btn.textContent="🚀 Publish ("+Math.ceil(rem/1000)+"s)"; setTimeout(tick,500); }
-    }
-    tick();
-  }
-
-  // ── Tool selection highlight ───────────────────────────────────────────────
-  var toolBtnMap = { block:"btnBlock", thin:"btnThin", triangle:"btnTriangle", spawn:"btnSpawn", win:"btnWin" };
-  function setTool(t) {
-    selectedTool = t;
-    Object.values(toolBtnMap).forEach(id => document.getElementById(id).classList.remove("selected-tool"));
-    if (toolBtnMap[t]) document.getElementById(toolBtnMap[t]).classList.add("selected-tool");
-  }
-  function setSize(s) {
-    selectedSize = s;
-    ["btnSmall","btnNormal","btnBig"].forEach(id => document.getElementById(id).classList.remove("selected-tool"));
-    var m = {small:"btnSmall",normal:"btnNormal",big:"btnBig"}[s];
-    if (m) document.getElementById(m).classList.add("selected-tool");
-  }
-
-  // ── Button wiring ──────────────────────────────────────────────────────────
-  document.getElementById("btnCreate").addEventListener("click", startEditor);
-  document.getElementById("btnExplore").addEventListener("click", openExplore);
-  document.getElementById("btnHome").addEventListener("click", goHome);
-  document.getElementById("btnSmall").addEventListener("click", function(){ setSize("small"); });
-  document.getElementById("btnNormal").addEventListener("click", function(){ setSize("normal"); });
-  document.getElementById("btnBig").addEventListener("click", function(){ setSize("big"); });
-  document.getElementById("btnGravity").addEventListener("click", function(){
-    gravityOnNewBlocks=!gravityOnNewBlocks;
-    this.textContent="🌍 Gravity: "+(gravityOnNewBlocks?"ON":"OFF");
-  });
-  document.getElementById("btnBlock").addEventListener("click", function(){ setTool("block"); });
-  document.getElementById("btnThin").addEventListener("click", function(){ setTool("thin"); });
-  document.getElementById("btnTriangle").addEventListener("click", function(){ setTool("triangle"); });
-  document.getElementById("btnSpawn").addEventListener("click", function(){ setTool("spawn"); });
-  document.getElementById("btnWin").addEventListener("click", function(){ setTool("win"); });
-  document.getElementById("btnSave").addEventListener("click", saveGame);
-  document.getElementById("btnLoad").addEventListener("click", loadGame);
-  document.getElementById("btnPublish").addEventListener("click", publishGame);
-  document.getElementById("btnShareLink").addEventListener("click", shareLink);
-
-  setTool("block"); setSize("normal");
-  startCooldownUI();
-
-  // ── Canvas interaction ────────────────────────────────────────────────────
-  canvas.addEventListener("contextmenu", function(e){ e.preventDefault(); });
-  canvas.addEventListener("mousedown", function(e){
-    var rect=canvas.getBoundingClientRect(), x=e.clientX-rect.left, y=e.clientY-rect.top, size=getSize();
-    if(e.button===0){
-      if(selectedTool==="block")    blocks.push({x:x-size/2,y:y-size/2,width:size,height:size,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks});
-      if(selectedTool==="thin")     blocks.push({x:x-size/2,y:y-size/8,width:size,height:size/4,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks});
-      if(selectedTool==="triangle") triangles.push({x:x-size/2,y:y-size/2,width:size,height:size,vy:.5});
-      if(selectedTool==="win")      wins.push({x:x-size/2,y:y-size/2,width:size,height:size});
-      if(selectedTool==="spawn"){
-        spawnPoint={x:x-20,y:y-20,width:40,height:40};
-        player.spawnX=spawnPoint.x; player.spawnY=spawnPoint.y;
-        player.x=player.spawnX; player.y=player.spawnY; player.vx=0; player.vy=0;
-      }
-    }
-    if(e.button===2){
-      if(spawnPoint&&x>spawnPoint.x&&x<spawnPoint.x+spawnPoint.width&&y>spawnPoint.y&&y<spawnPoint.y+spawnPoint.height){spawnPoint=null;return;}
-      for(var i=blocks.length-1;i>=0;i--){var b=blocks[i];if(x>b.x&&x<b.x+b.width&&y>b.y&&y<b.y+b.height){blocks.splice(i,1);return;}}
-      for(var i=triangles.length-1;i>=0;i--){var t=triangles[i];if(x>t.x&&x<t.x+t.width&&y>t.y&&y<t.y+t.height){triangles.splice(i,1);return;}}
-      for(var i=wins.length-1;i>=0;i--){var w=wins[i];if(x>w.x&&x<w.x+w.width&&y>w.y&&y<w.y+w.height){wins.splice(i,1);return;}}
-    }
-  });
-
-  // ── Navigation ────────────────────────────────────────────────────────────
-  function goHome(){ home.style.display="flex"; editorContainer.style.display="none"; explorePage.style.display="none"; loopRunning=false; }
-  function startEditor(){ home.style.display="none"; editorContainer.style.display="block"; explorePage.style.display="none"; startLoop(); }
-  function startLoop(){ if(loopRunning)return; loopRunning=true; gameLoop(); }
-  function gameLoop(){ if(!loopRunning)return; update(); draw(); requestAnimationFrame(gameLoop); }
-
-  var keys={};
-  document.addEventListener("keydown",function(e){keys[e.key.toLowerCase()]=true;});
-  document.addEventListener("keyup",function(e){keys[e.key.toLowerCase()]=false;});
-
-  // ── Physics ───────────────────────────────────────────────────────────────
-  function update(){
-    if(keys["a"])player.vx=-4;else if(keys["d"])player.vx=4;else player.vx=0;
-    if(keys[" "]&&player.onGround)player.vy=-10;
-    player.vy+=gravity;player.x+=player.vx;player.y+=player.vy;player.onGround=false;
-    if(player.y+player.height>canvas.height-10){player.y=canvas.height-10-player.height;player.vy=0;player.onGround=true;}
-    for(var i=0;i<blocks.length;i++){var block=blocks[i];if(block.gravity){block.vy+=gravity;block.y+=block.vy;if(block.y+block.height>canvas.height-10){block.y=canvas.height-10-block.height;block.vy=0;}for(var j=0;j<blocks.length;j++){var other=blocks[j];if(block===other)continue;if(block.x<other.x+other.width&&block.x+block.width>other.x&&block.y<other.y+other.height&&block.y+block.height>other.y){if(block.vy>0){block.y=other.y-block.height;block.vy=0;}}}}}
-    for(var i=0;i<triangles.length;i++){var t=triangles[i];t.vy+=gravity;t.y+=t.vy;if(t.y+t.height>canvas.height-10){t.y=canvas.height-10-t.height;t.vy=0;}for(var j=0;j<blocks.length;j++){var b=blocks[j];if(t.x<b.x+b.width&&t.x+t.width>b.x&&t.y<b.y+b.height&&t.y+t.height>b.y){if(t.vy>0){t.y=b.y-t.height;t.vy=0;}}}}
-    for(var i=0;i<blocks.length;i++){var b=blocks[i];if(player.x<b.x+b.width&&player.x+player.width>b.x&&player.y<b.y+b.height&&player.y+player.height>b.y){if(player.vy>0){player.y=b.y-player.height;player.vy=0;player.onGround=true;}}}
-    for(var i=0;i<triangles.length;i++){var t=triangles[i];if(player.x<t.x+t.width&&player.x+player.width>t.x&&player.y<t.y+t.height&&player.y+player.height>t.y){player.x=player.spawnX;player.y=player.spawnY;player.vx=0;player.vy=0;hasWon=false;}}
-    for(var i=0;i<wins.length;i++){var w=wins[i];if(!hasWon&&player.x<w.x+w.width&&player.x+player.width>w.x&&player.y<w.y+w.height&&player.y+player.height>w.y){hasWon=true;alert("🎉 YOU WIN!");}}
-  }
-
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="#e8e8e8";ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="#222";ctx.fillRect(0,canvas.height-10,canvas.width,10);
-    ctx.fillStyle="#888";for(var i=0;i<blocks.length;i++){var b=blocks[i];ctx.fillRect(b.x,b.y,b.width,b.height);}
-    ctx.fillStyle="#e53935";for(var i=0;i<triangles.length;i++){var t=triangles[i];ctx.beginPath();ctx.moveTo(t.x+t.width/2,t.y);ctx.lineTo(t.x,t.y+t.height);ctx.lineTo(t.x+t.width,t.y+t.height);ctx.closePath();ctx.fill();}
-    ctx.fillStyle="#FFD700";for(var i=0;i<wins.length;i++){var w=wins[i];ctx.fillRect(w.x,w.y,w.width,w.height);}
-    if(spawnPoint){ctx.fillStyle="#00BCD4";ctx.fillRect(spawnPoint.x,spawnPoint.y,spawnPoint.width,spawnPoint.height);ctx.fillStyle="#000";ctx.font="bold 11px Arial";ctx.textAlign="center";ctx.fillText("SPAWN",spawnPoint.x+spawnPoint.width/2,spawnPoint.y+14);ctx.fillText("HERE",spawnPoint.x+spawnPoint.width/2,spawnPoint.y+28);ctx.textAlign="left";}
-    ctx.fillStyle="#4CAF50";ctx.fillRect(player.x,player.y,player.width,player.height);
-  }
-
-  // ── Save / Load / Publish / Share ─────────────────────────────────────────
-  function saveGame(){
-    var title=document.getElementById("titleInput").value||"Untitled Game";
-    localStorage.setItem("savedGame",JSON.stringify({title:title,blocks:blocks,triangles:triangles,wins:wins,spawnPoint:spawnPoint}));
-    statusMsg.textContent="💾 Saved locally!";
-    setTimeout(()=>statusMsg.textContent="",2000);
-  }
-
-  function loadGame(){
-    var data=JSON.parse(localStorage.getItem("savedGame"));
-    if(!data){alert("No saved game found!");return;}
-    blocks.length=0;triangles.length=0;wins.length=0;
-    blocks.push.apply(blocks,data.blocks);triangles.push.apply(triangles,data.triangles);wins.push.apply(wins,data.wins);
-    spawnPoint=data.spawnPoint||null;
-    if(spawnPoint){player.spawnX=spawnPoint.x;player.spawnY=spawnPoint.y;player.x=player.spawnX;player.y=player.spawnY;}
-    document.getElementById("titleInput").value=data.title;
-    statusMsg.textContent="📂 Loaded!";
-    setTimeout(()=>statusMsg.textContent="",2000);
-  }
-
- function publishGame(){
-  var rem=getCooldownRemaining();
-  if(rem>0){alert("Please wait "+Math.ceil(rem/1000)+"s before publishing again.");return;}
-
-  var title=document.getElementById("titleInput").value.trim()||"Untitled Game";
-  var btn=document.getElementById("btnPublish");
-  btn.disabled=true; 
-  btn.textContent="⏳ Publishing...";
-  statusMsg.textContent="Publishing to server...";
-
-  var id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-
-  var game={
-    id: id,
-    title:title,
-    publishedAt:Date.now(),
-    blocks:JSON.parse(JSON.stringify(blocks)),
-    triangles:JSON.parse(JSON.stringify(triangles)),
-    wins:JSON.parse(JSON.stringify(wins)),
-    spawnPoint:spawnPoint
-  };
-
-  pushGame(game).then(function(){
-    localStorage.setItem("lastPublishTime", Date.now());
-    startCooldownUI();
-
-    statusMsg.textContent = "✅ Published!";
-    setTimeout(()=>statusMsg.textContent="", 2000);
-
-    btn.disabled = false;
-    btn.textContent = "🚀 Publish";
-  }).catch(function(err){
-    console.error(err);
-    alert("Publish failed!");
-    btn.disabled = false;
-    btn.textContent = "🚀 Publish";
-  });
-}
-
 async function pushGame(game) {
   try {
-    await fetch("http://localhost:3000/games", {
+    await fetch(API_URL + "/games", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(game)
     });
   } catch (e) {
-    console.error("Failed to publish game:", e);
-    alert("Publish failed. Is your server running?");
+    console.error("Failed to publish:", e);
+    alert("Publish failed");
   }
 }
 
+ const canvas = document.getElementById("editor");
+const ctx = canvas.getContext("2d");
 
+let blocks = [];
+let triangles = [];
+let wins = [];
+let spawnPoint = null;
 
-  function shareLink(){
-    var title=document.getElementById("titleInput").value||"Untitled Game";
-    var data={title:title,blocks:JSON.parse(JSON.stringify(blocks)),triangles:JSON.parse(JSON.stringify(triangles)),wins:JSON.parse(JSON.stringify(wins)),spawnPoint:spawnPoint};
-    var encoded=btoa(JSON.stringify(data));
-    var url=location.href.split("?")[0]+"?game="+encodeURIComponent(encoded);
-    navigator.clipboard.writeText(url).then(function(){alert("Share link copied!");}).catch(function(){prompt("Copy this link:",url);});
+let currentTool = "block";
+
+// simple drawing tools
+canvas.addEventListener("click", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  if (currentTool === "block") {
+    blocks.push({ x, y, width: 50, height: 50 });
   }
 
-  (function checkURLGame(){
-    var params=new URLSearchParams(location.search), encoded=params.get("game");
-    if(!encoded)return;
-    try{
-      var data=JSON.parse(atob(decodeURIComponent(encoded)));
-      blocks.push.apply(blocks,data.blocks);triangles.push.apply(triangles,data.triangles);wins.push.apply(wins,data.wins);
-      spawnPoint=data.spawnPoint||null;
-      if(spawnPoint){player.spawnX=spawnPoint.x;player.spawnY=spawnPoint.y;player.x=player.spawnX;player.y=player.spawnY;}
-      document.getElementById("titleInput").value=data.title||"";
-      startEditor();
-    }catch(e){console.error("Invalid game link",e);}
-  })();
-
-  function openExplore(){
-    home.style.display="none"; editorContainer.style.display="none"; explorePage.style.display="block"; loopRunning=false;
-    renderExplore();
+  if (currentTool === "triangle") {
+    triangles.push({ x, y, width: 50, height: 50 });
   }
 
-  function renderExplore(){
-    explorePage.innerHTML='<h2>🌍 Published Games</h2><p style="color:#aac">Loading games from server...</p>';
-    fetchGames().then(function(games){
-      explorePage.innerHTML='<h2>🌍 Published Games</h2>';
-      var backBtn=document.createElement("button");
-      backBtn.textContent="🏠 Back to Home"; backBtn.className="explore-back"; backBtn.onclick=goHome;
-      explorePage.appendChild(backBtn);
-
-      if(games.length===0){
-        var p=document.createElement("p");
-        p.style.color="#aac";
-        p.textContent="No games published yet — be the first!";
-        explorePage.appendChild(p);
-        return;
-      }
-      games.forEach(function(g){
-        var card=document.createElement("div"); card.className="gameCard";
-        var date=g.publishedAt?new Date(g.publishedAt).toLocaleString():"";
-        card.innerHTML='<h3>'+escapeHtml(g.title)+'</h3>'+(date?'<small>📅 '+date+'</small>':'');
-        var btn=document.createElement("button");
-        btn.textContent="▶️ Play"; btn.className="play-btn";
-        btn.onclick=function(){playGame(g);}; card.appendChild(btn); explorePage.appendChild(card);
-      });
-    }).catch(function(e){
-      explorePage.innerHTML='<h2>🌍 Published Games</h2><p style="color:#f88">Error loading games: '+escapeHtml(e.message)+'</p>';
-      var backBtn=document.createElement("button"); backBtn.textContent="🏠 Back"; backBtn.className="explore-back"; backBtn.onclick=goHome; explorePage.appendChild(backBtn);
-    });
+  if (currentTool === "win") {
+    wins.push({ x, y, width: 50, height: 50 });
   }
 
-  function playGame(g){
-    blocks.length=0;triangles.length=0;wins.length=0;
-    blocks.push.apply(blocks,JSON.parse(JSON.stringify(g.blocks)));
-    triangles.push.apply(triangles,JSON.parse(JSON.stringify(g.triangles)));
-    wins.push.apply(wins,JSON.parse(JSON.stringify(g.wins)));
-    spawnPoint=g.spawnPoint||null;
-    if(spawnPoint){player.spawnX=spawnPoint.x;player.spawnY=spawnPoint.y;player.x=player.spawnX;player.y=player.spawnY;}
-    hasWon=false; explorePage.style.display="none"; editorContainer.style.display="block"; loopRunning=false; startLoop();
+  if (currentTool === "spawn") {
+    spawnPoint = { x, y, width: 40, height: 40 };
   }
 
-  function escapeHtml(str){
-    return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-  }
+  draw();
+});
 
-})();
+// draw everything
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "gray";
+  blocks.forEach(b => {
+    ctx.fillRect(b.x, b.y, b.width, b.height);
+  });
+
+  ctx.fillStyle = "red";
+  triangles.forEach(t => {
+    ctx.beginPath();
+    ctx.moveTo(t.x, t.y);
+    ctx.lineTo(t.x + t.width, t.y);
+    ctx.lineTo(t.x + t.width / 2, t.y - t.height);
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  ctx.fillStyle = "yellow";
+  wins.forEach(w => {
+    ctx.fillRect(w.x, w.y, w.width, w.height);
+  });
+
+  if (spawnPoint) {
+    ctx.fillStyle = "cyan";
+    ctx.fillRect(spawnPoint.x, spawnPoint.y, spawnPoint.width, spawnPoint.height);
+  }
+}
+
+ // ── Navigation ──
+const home = document.getElementById("home");
+const editorContainer = document.getElementById("editorContainer");
+const explorePage = document.getElementById("explorePage");
+
+document.getElementById("btnCreate").onclick = () => {
+  home.style.display = "none";
+  editorContainer.style.display = "block";
+  explorePage.style.display = "none";
+};
+
+document.getElementById("btnExplore").onclick = async () => {
+  home.style.display = "none";
+  editorContainer.style.display = "none";
+  explorePage.style.display = "block";
+
+  const games = await fetchGames();
+
+  explorePage.innerHTML = "<h2>Games</h2>";
+
+  games.forEach(g => {
+    const div = document.createElement("div");
+    div.className = "gameCard";
+
+    const btn = document.createElement("button");
+    btn.textContent = "Play";
+
+    btn.onclick = () => {
+      blocks = g.blocks || [];
+      triangles = g.triangles || [];
+      wins = g.wins || [];
+      spawnPoint = g.spawnPoint || null;
+
+      home.style.display = "none";
+      explorePage.style.display = "none";
+      editorContainer.style.display = "block";
+
+      draw();
+    };
+
+    div.appendChild(btn);
+    explorePage.appendChild(div);
+  });
+};
+
+// ── Tool buttons ──
+document.getElementById("btnBlock").onclick = () => currentTool = "block";
+document.getElementById("btnTriangle").onclick = () => currentTool = "triangle";
+document.getElementById("btnSpawn").onclick = () => currentTool = "spawn";
+document.getElementById("btnWin").onclick = () => currentTool = "win";
+
+// ── Publish ──
+document.getElementById("btnPublish").onclick = async () => {
+  const game = {
+    id: Date.now().toString(),
+    blocks,
+    triangles,
+    wins,
+    spawnPoint
+  };
+
+  await pushGame(game);
+  alert("Published!");
+};
+
+ })();
 </script>
 </body>
 </html>
