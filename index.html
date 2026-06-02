@@ -124,17 +124,14 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   // Uses window.storage (shared: true) — all visitors see the same game list.
   // Games stored individually as "games:<id>" so writes don't overwrite each other.
 
- async function fetchGames() {
-  const res = await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c/latest", {
-    headers: {
-      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
-    }
-  });
-
-  const data = await res.json();
-  return (data.record || [])
-    .sort((a, b) => b.publishedAt - a.publishedAt)
-    .slice(0, 50);
+async function fetchGames() {
+  try {
+    const res = await fetch("http://localhost:3000/games");
+    return await res.json();
+  } catch (e) {
+    console.error("Failed to load games:", e);
+    return [];
+  }
 }
 
   // ── Game state ─────────────────────────────────────────────────────────────
@@ -322,33 +319,20 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   });
 }
 
- async function pushGame(game) {
-  const res = await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c/latest", {
-    method: "GET",
-    headers: {
-      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
-    }
-  });
-
-  const data = await res.json();
-
-  let games = data.record;
-
-  if (!Array.isArray(games)) {
-    games = [];
+async function pushGame(game) {
+  try {
+    await fetch("http://localhost:3000/games", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(game)
+    });
+  } catch (e) {
+    console.error("Failed to publish game:", e);
+    alert("Publish failed. Is your server running?");
   }
-
-  games.push(game);
-
-  await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
-    },
-    body: JSON.stringify(games)
-  });
 }
+
+
 
   function shareLink(){
     var title=document.getElementById("titleInput").value||"Untitled Game";
