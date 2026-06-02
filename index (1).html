@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BuilderLand</title>
+<style>
+body { font-family: Arial; text-align: center; margin: 0; }
+#home { padding: 20px; }
+#editorContainer { display: none; height: 100vh; overflow-y: auto; }
+#creatorPanel { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; }
+#toolbar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+button { padding: 8px 12px; cursor: pointer; }
+#editor { border: 2px solid black; }
+.selected { background: #4CAF50; color: white; }
+#explorePage { display: none; height: 100vh; overflow-y: auto; padding: 20px; }
+.gameCard { border: 1px solid black; margin: 10px; padding: 10px; }
+</style>
+</head>
+<body>
+
+<div id="home">
+  <h1>BuilderLand</h1>
+  <button id="btnCreate">Create Game</button>
+  <button id="btnExplore">Explore Games</button>
+</div>
+
+<div id="editorContainer">
+  <div id="creatorPanel">
+    <input id="titleInput" placeholder="Game title" />
+    <div id="toolbar">
+      <button id="btnSmall">Small</button>
+      <button id="btnNormal">Normal</button>
+      <button id="btnBig">Big</button>
+      <button id="btnGravity">Gravity: ON</button>
+      <button id="btnBlock">Square</button>
+      <button id="btnThin">Thin</button>
+      <button id="btnTriangle">Triangle</button>
+      <button id="btnSpawn">Spawn</button>
+      <button id="btnWin">Win</button>
+      <button id="btnSave">Save</button>
+      <button id="btnLoad">Load</button>
+      <button id="btnPublish">Publish</button>
+      <button id="btnShareLink">Share Link</button>
+    </div>
+    <canvas id="editor" width="800" height="500"></canvas>
+  </div>
+</div>
+
+<div id="explorePage"></div>
+
+<script>
+(function () {
+
+  const canvas = document.getElementById("editor");
+  const ctx = canvas.getContext("2d");
+  const home = document.getElementById("home");
+  const editorContainer = document.getElementById("editorContainer");
+  const explorePage = document.getElementById("explorePage");
+
+  let selectedTool = "block";
+  let selectedSize = "normal";
+  let gravityOnNewBlocks = true;
+  let loopRunning = false;
+  let hasWon = false;
+
+  const gravity = 0.5;
+
+  const player = {
+    x: 380, y: 200,
+    spawnX: 380, spawnY: 200,
+    width: 40, height: 40,
+    vx: 0, vy: 0,
+    onGround: false
+  };
+
+  const blocks = [];
+  const triangles = [];
+  const wins = [];
+  let spawnPoint = null; // only one spawn point allowed
+
+  function getSize() {
+    if (selectedSize === "small") return 25;
+    if (selectedSize === "big") return 80;
+    return 50;
+  }
+
+  // ── WIRE UP ALL BUTTONS ──────────────────────────────────────
+
+  document.getElementById("btnCreate").addEventListener("click", startEditor);
+  document.getElementById("btnExplore").addEventListener("click", openExplore);
+
+  document.getElementById("btnSmall").addEventListener("click", function () { selectedSize = "small"; });
+  document.getElementById("btnNormal").addEventListener("click", function () { selectedSize = "normal"; });
+  document.getElementById("btnBig").addEventListener("click", function () { selectedSize = "big"; });
+
+  document.getElementById("btnGravity").addEventListener("click", function () {
+    gravityOnNewBlocks = !gravityOnNewBlocks;
+    this.textContent = "Gravity: " + (gravityOnNewBlocks ? "ON" : "OFF");
+  });
+
+  document.getElementById("btnBlock").addEventListener("click", function () { selectedTool = "block"; });
+  document.getElementById("btnThin").addEventListener("click", function () { selectedTool = "thin"; });
+  document.getElementById("btnTriangle").addEventListener("click", function () { selectedTool = "triangle"; });
+  document.getElementById("btnSpawn").addEventListener("click", function () { selectedTool = "spawn"; });
+  document.getElementById("btnWin").addEventListener("click", function () { selectedTool = "win"; });
+
+  document.getElementById("btnSave").addEventListener("click", saveGame);
+  document.getElementById("btnLoad").addEventListener("click", loadGame);
+  document.getElementById("btnPublish").addEventListener("click", publishGame);
+  document.getElementById("btnShareLink").addEventListener("click", shareLink);
+
+  // ── CANVAS EVENTS ────────────────────────────────────────────
+
+  canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+  canvas.addEventListener("mousedown", function (e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const size = getSize();
+
+    if (e.button === 0) {
+      if (selectedTool === "block") {
+        blocks.push({ x: x - size/2, y: y - size/2, width: size, height: size,
+          vy: gravityOnNewBlocks ? 0.5 : 0, gravity: gravityOnNewBlocks });
+      }
+      if (selectedTool === "thin") {
+        blocks.push({ x: x - size/2, y: y - size/8, width: size, height: size/4,
+          vy: gravityOnNewBlocks ? 0.5 : 0, gravity: gravityOnNewBlocks });
+      }
+      if (selectedTool === "triangle") {
+        triangles.push({ x: x - size/2, y: y - size/2, width: size, height: size, vy: 0.5 });
+      }
+      if (selectedTool === "win") {
+        wins.push({ x: x - size/2, y: y - size/2, width: size, height: size });
+      }
+      if (selectedTool === "spawn") {
+        // Only one spawn point at a time; place it and move player spawn there
+        spawnPoint = { x: x - 20, y: y - 20, width: 40, height: 40 };
+        player.spawnX = spawnPoint.x;
+        player.spawnY = spawnPoint.y;
+        player.x = player.spawnX;
+        player.y = player.spawnY;
+        player.vx = 0; player.vy = 0;
+      }
+    }
+
+    if (e.button === 2) {
+      // Remove spawn point if right-clicked
+      if (spawnPoint && x > spawnPoint.x && x < spawnPoint.x + spawnPoint.width &&
+          y > spawnPoint.y && y < spawnPoint.y + spawnPoint.height) {
+        spawnPoint = null; return;
+      }
+      for (let i = blocks.length - 1; i >= 0; i--) {
+        const b = blocks[i];
+        if (x > b.x && x < b.x + b.width && y > b.y && y < b.y + b.height) {
+          blocks.splice(i, 1); return;
+        }
+      }
+      for (let i = triangles.length - 1; i >= 0; i--) {
+        const t = triangles[i];
+        if (x > t.x && x < t.x + t.width && y > t.y && y < t.y + t.height) {
+          triangles.splice(i, 1); return;
+        }
+      }
+      for (let i = wins.length - 1; i >= 0; i--) {
+        const w = wins[i];
+        if (x > w.x && x < w.x + w.width && y > w.y && y < w.y + w.height) {
+          wins.splice(i, 1); return;
+        }
+      }
+    }
+  });
+
+  // ── GAME LOOP ─────────────────────────────────────────────────
+
+  function startEditor() {
+    home.style.display = "none";
+    editorContainer.style.display = "block";
+    explorePage.style.display = "none";
+    startLoop();
+  }
+
+  function startLoop() {
+    if (loopRunning) return;
+    loopRunning = true;
+    gameLoop();
+  }
+
+  function gameLoop() {
+    update();
+    draw();
+    if (loopRunning) requestAnimationFrame(gameLoop);
+  }
+
+  const keys = {};
+  document.addEventListener("keydown", function (e) { keys[e.key.toLowerCase()] = true; });
+  document.addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
+
+  function update() {
+    if (keys["a"]) player.vx = -4;
+    else if (keys["d"]) player.vx = 4;
+    else player.vx = 0;
+
+    if (keys[" "] && player.onGround) player.vy = -10;
+
+    player.vy += gravity;
+    player.x += player.vx;
+    player.y += player.vy;
+    player.onGround = false;
+
+    if (player.y + player.height > canvas.height - 10) {
+      player.y = canvas.height - 10 - player.height;
+      player.vy = 0;
+      player.onGround = true;
+    }
+
+    for (const block of blocks) {
+      if (block.gravity) {
+        block.vy += gravity;
+        block.y += block.vy;
+        if (block.y + block.height > canvas.height - 10) {
+          block.y = canvas.height - 10 - block.height;
+          block.vy = 0;
+        }
+        for (const other of blocks) {
+          if (block === other) continue;
+          if (block.x < other.x + other.width && block.x + block.width > other.x &&
+              block.y < other.y + other.height && block.y + block.height > other.y) {
+            if (block.vy > 0) { block.y = other.y - block.height; block.vy = 0; }
+          }
+        }
+      }
+    }
+
+    for (const t of triangles) {
+      t.vy += gravity;
+      t.y += t.vy;
+      if (t.y + t.height > canvas.height - 10) { t.y = canvas.height - 10 - t.height; t.vy = 0; }
+      // Land on top of blocks
+      for (const block of blocks) {
+        if (t.x < block.x + block.width && t.x + t.width > block.x &&
+            t.y < block.y + block.height && t.y + t.height > block.y) {
+          if (t.vy > 0) { t.y = block.y - t.height; t.vy = 0; }
+        }
+      }
+    }
+
+    for (const block of blocks) {
+      if (player.x < block.x + block.width && player.x + player.width > block.x &&
+          player.y < block.y + block.height && player.y + player.height > block.y) {
+        if (player.vy > 0) {
+          player.y = block.y - player.height;
+          player.vy = 0;
+          player.onGround = true;
+        }
+      }
+    }
+
+    for (const t of triangles) {
+      if (player.x < t.x + t.width && player.x + player.width > t.x &&
+          player.y < t.y + t.height && player.y + player.height > t.y) {
+        player.x = player.spawnX; player.y = player.spawnY;
+        player.vx = 0; player.vy = 0;
+        hasWon = false;
+      }
+    }
+
+    for (const w of wins) {
+      if (!hasWon && player.x < w.x + w.width && player.x + player.width > w.x &&
+          player.y < w.y + w.height && player.y + player.height > w.y) {
+        hasWon = true;
+        alert("YOU WIN!");
+      }
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+    ctx.fillStyle = "gray";
+    for (const b of blocks) ctx.fillRect(b.x, b.y, b.width, b.height);
+    ctx.fillStyle = "red";
+    for (const t of triangles) {
+      ctx.beginPath();
+      ctx.moveTo(t.x + t.width/2, t.y);
+      ctx.lineTo(t.x, t.y + t.height);
+      ctx.lineTo(t.x + t.width, t.y + t.height);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = "gold";
+    for (const w of wins) ctx.fillRect(w.x, w.y, w.width, w.height);
+    // Draw spawn point
+    if (spawnPoint) {
+      ctx.fillStyle = "cyan";
+      ctx.fillRect(spawnPoint.x, spawnPoint.y, spawnPoint.width, spawnPoint.height);
+      ctx.fillStyle = "black";
+      ctx.font = "bold 11px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("SPAWN", spawnPoint.x + spawnPoint.width / 2, spawnPoint.y + 14);
+      ctx.fillText("HERE", spawnPoint.x + spawnPoint.width / 2, spawnPoint.y + 28);
+      ctx.textAlign = "left";
+    }
+    ctx.fillStyle = "green";
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+  }
+
+  // ── SAVE / LOAD / PUBLISH ────────────────────────────────────
+
+  function saveGame() {
+    const title = document.getElementById("titleInput").value || "Untitled Game";
+    localStorage.setItem("savedGame", JSON.stringify({ title, blocks, triangles, wins, spawnPoint }));
+    alert("Game Saved!");
+  }
+
+  function loadGame() {
+    const data = JSON.parse(localStorage.getItem("savedGame"));
+    if (!data) { alert("No saved game found!"); return; }
+    blocks.length = 0; triangles.length = 0; wins.length = 0;
+    blocks.push(...data.blocks);
+    triangles.push(...data.triangles);
+    wins.push(...data.wins);
+    spawnPoint = data.spawnPoint || null;
+    if (spawnPoint) {
+      player.spawnX = spawnPoint.x; player.spawnY = spawnPoint.y;
+      player.x = player.spawnX; player.y = player.spawnY;
+    }
+    document.getElementById("titleInput").value = data.title;
+    alert("Game Loaded!");
+  }
+
+  function publishGame() {
+    const title = document.getElementById("titleInput").value || "Untitled Game";
+    const data = { title, blocks: structuredClone(blocks), triangles: structuredClone(triangles), wins: structuredClone(wins), spawnPoint };
+    const published = JSON.parse(localStorage.getItem("publishedGames")) || [];
+    published.push(data);
+    localStorage.setItem("publishedGames", JSON.stringify(published));
+    alert("Game Published!");
+  }
+
+  function shareLink() {
+    const title = document.getElementById("titleInput").value || "Untitled Game";
+    const data = { title, blocks: structuredClone(blocks), triangles: structuredClone(triangles), wins: structuredClone(wins), spawnPoint };
+    const encoded = btoa(JSON.stringify(data));
+    const url = location.href.split("?")[0] + "?game=" + encodeURIComponent(encoded);
+    navigator.clipboard.writeText(url).then(function () {
+      alert("Share link copied to clipboard!");
+    }).catch(function () {
+      prompt("Copy this link to share your game:", url);
+    });
+  }
+
+  // ── LOAD FROM URL ────────────────────────────────────────────
+  (function checkURLGame() {
+    const params = new URLSearchParams(location.search);
+    const encoded = params.get("game");
+    if (!encoded) return;
+    try {
+      const data = JSON.parse(atob(decodeURIComponent(encoded)));
+      blocks.push(...data.blocks);
+      triangles.push(...data.triangles);
+      wins.push(...data.wins);
+      spawnPoint = data.spawnPoint || null;
+      if (spawnPoint) {
+        player.spawnX = spawnPoint.x; player.spawnY = spawnPoint.y;
+        player.x = player.spawnX; player.y = player.spawnY;
+      }
+      document.getElementById("titleInput").value = data.title || "";
+      startEditor();
+    } catch (e) { console.error("Invalid game link", e); }
+  })();
+
+  function openExplore() {
+    home.style.display = "none";
+    editorContainer.style.display = "none";
+    explorePage.style.display = "block";
+    renderExplore();
+  }
+
+  function renderExplore() {
+    const games = JSON.parse(localStorage.getItem("publishedGames")) || [];
+    explorePage.innerHTML = "<h2>Published Games</h2>";
+    if (games.length === 0) {
+      explorePage.innerHTML += "<p>No games published yet.</p>";
+      return;
+    }
+    games.forEach(function (g, index) {
+      const card = document.createElement("div");
+      card.className = "gameCard";
+      card.innerHTML = "<h3>" + g.title + "</h3>";
+      const btn = document.createElement("button");
+      btn.textContent = "Play";
+      btn.addEventListener("click", function () { playGame(index); });
+      card.appendChild(btn);
+      explorePage.appendChild(card);
+    });
+  }
+
+  function playGame(index) {
+    const games = JSON.parse(localStorage.getItem("publishedGames")) || [];
+    const g = games[index];
+    blocks.length = 0; triangles.length = 0; wins.length = 0;
+    blocks.push(...structuredClone(g.blocks));
+    triangles.push(...structuredClone(g.triangles));
+    wins.push(...structuredClone(g.wins));
+    spawnPoint = g.spawnPoint || null;
+    if (spawnPoint) {
+      player.spawnX = spawnPoint.x; player.spawnY = spawnPoint.y;
+      player.x = player.spawnX; player.y = player.spawnY;
+    }
+    explorePage.style.display = "none";
+    editorContainer.style.display = "block";
+    startLoop();
+  }
+
+})();
+</script>
+</body>
+</html>
