@@ -136,13 +136,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     .sort((a, b) => b.publishedAt - a.publishedAt)
     .slice(0, 50);
 }
-async function pushGame(game) {
-  const res = await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c/latest", {
-    method: "GET",
-    headers: {
-      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
-    }
-  });
 
   const data = await res.json();
   let games = data.record;
@@ -349,7 +342,7 @@ if (!Array.isArray(games)) {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG
+      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
     },
     body: JSON.stringify(games)
   });
