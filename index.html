@@ -124,34 +124,40 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   // Uses window.storage (shared: true) — all visitors see the same game list.
   // Games stored individually as "games:<id>" so writes don't overwrite each other.
 
-  async function fetchGames() {
-    try {
-      const result = await window.storage.list("games:", true);
-      if (!result || !result.keys || result.keys.length === 0) return [];
-      const entries = await Promise.all(
-        result.keys.map(async (key) => {
-          try {
-            const r = await window.storage.get(key, true);
-            return r ? JSON.parse(r.value) : null;
-          } catch (e) { return null; }
-        })
-      );
-      return entries
-        .filter(Boolean)
-        .sort((a, b) => b.publishedAt - a.publishedAt)
-        .slice(0, 50);
-    } catch (e) {
-      console.error("fetchGames error:", e);
-      return [];
+ async function fetchGames() {
+  const res = await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c/latest", {
+    headers: {
+      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
     }
-  }
+  });
 
-  async function pushGame(game) {
-    const key = "games:" + game.id;
-    const result = await window.storage.set(key, JSON.stringify(game), true);
-    if (!result) throw new Error("Storage write failed");
-  }
+  const data = await res.json();
+  return (data.record || [])
+    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .slice(0, 50);
+}
+async function pushGame(game) {
+  const res = await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c/latest", {
+    method: "GET",
+    headers: {
+      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
+    }
+  });
 
+  const data = await res.json();
+  const games = data.record || [];
+
+  games.push(game);
+
+  await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
+    },
+    body: JSON.stringify(games)
+  });
+}
   // ── Game state ─────────────────────────────────────────────────────────────
   var canvas = document.getElementById("editor");
   var ctx = canvas.getContext("2d");
