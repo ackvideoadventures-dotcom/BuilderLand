@@ -137,24 +137,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     .slice(0, 50);
 }
 
-  const data = await res.json();
-  let games = data.record;
-
-if (!Array.isArray(games)) {
-  games = [];
-}
-
-  games.push(game);
-
-  await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": "$2a$10$gW0VhrS61BdjNf26rq6hJ.K.1U0ZJ2zMfgp1CkdMuLUFAx8rieInG"
-    },
-    body: JSON.stringify(games)
-  });
-}
   // ── Game state ─────────────────────────────────────────────────────────────
   var canvas = document.getElementById("editor");
   var ctx = canvas.getContext("2d");
@@ -301,24 +283,44 @@ if (!Array.isArray(games)) {
     setTimeout(()=>statusMsg.textContent="",2000);
   }
 
-  function publishGame(){
-    var rem=getCooldownRemaining();
-    if(rem>0){alert("Please wait "+Math.ceil(rem/1000)+"s before publishing again.");return;}
-    var title=document.getElementById("titleInput").value.trim()||"Untitled Game";
-    var btn=document.getElementById("btnPublish");
-    btn.disabled=true; btn.textContent="⏳ Publishing...";
-    statusMsg.textContent="Publishing to server...";
+ function publishGame(){
+  var rem=getCooldownRemaining();
+  if(rem>0){alert("Please wait "+Math.ceil(rem/1000)+"s before publishing again.");return;}
 
-    var id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-    var game={
-      id: id,
-      title:title,
-      publishedAt:Date.now(),
-      blocks:JSON.parse(JSON.stringify(blocks)),
-      triangles:JSON.parse(JSON.stringify(triangles)),
-      wins:JSON.parse(JSON.stringify(wins)),
-      spawnPoint:spawnPoint
-    };
+  var title=document.getElementById("titleInput").value.trim()||"Untitled Game";
+  var btn=document.getElementById("btnPublish");
+  btn.disabled=true; 
+  btn.textContent="⏳ Publishing...";
+  statusMsg.textContent="Publishing to server...";
+
+  var id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+  var game={
+    id: id,
+    title:title,
+    publishedAt:Date.now(),
+    blocks:JSON.parse(JSON.stringify(blocks)),
+    triangles:JSON.parse(JSON.stringify(triangles)),
+    wins:JSON.parse(JSON.stringify(wins)),
+    spawnPoint:spawnPoint
+  };
+
+  pushGame(game).then(function(){
+    localStorage.setItem("lastPublishTime", Date.now());
+    startCooldownUI();
+
+    statusMsg.textContent = "✅ Published!";
+    setTimeout(()=>statusMsg.textContent="", 2000);
+
+    btn.disabled = false;
+    btn.textContent = "🚀 Publish";
+  }).catch(function(err){
+    console.error(err);
+    alert("Publish failed!");
+    btn.disabled = false;
+    btn.textContent = "🚀 Publish";
+  });
+}
 
  async function pushGame(game) {
   const res = await fetch("https://api.jsonbin.io/v3/b/6a1e45a0da38895dfe797b0c/latest", {
