@@ -39,7 +39,7 @@ body { font-family: 'Nunito', sans-serif; text-align: center; margin: 0; backgro
 #btnCreate  { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #0a3d2e; }
 #btnExplore { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #0a2040; }
 
-/* ── Editor ── */
+/* ── Editor :) ── */
 #editorContainer { display: none; height: 100vh; overflow-y: auto; background: var(--bg); }
 #creatorPanel { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 20px; }
 #titleInput { background: var(--card); border: 2px solid var(--surface); color: #eee; border-radius: 8px; padding: 8px 14px; font-size: 1em; font-family: 'Nunito', sans-serif; font-weight: 700; outline: none; width: 260px; }
@@ -50,7 +50,7 @@ button:hover:not(:disabled) { opacity: 0.88; transform: scale(1.04); }
 button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 #editor { border: 3px solid var(--surface); border-radius: 8px; background: #fff; display: block; }
 
-/* ── Explore ── */
+/* ── Explorer (broken) ── */
 #explorePage { display: none; min-height: 100vh; padding: 30px 20px; background: var(--bg); }
 #explorePage h2 { font-family: 'Press Start 2P', monospace; font-size: 1.3em; color: #fff; text-shadow: 0 0 12px rgba(33,150,243,0.6); margin-bottom: 20px; }
 .gameCard { background: var(--card); border: 1px solid var(--surface); margin: 10px auto; padding: 16px 20px; max-width: 420px; border-radius: 14px; text-align: left; transition: transform 0.12s, box-shadow 0.12s; }
@@ -58,7 +58,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .gameCard h3 { margin: 0 0 6px 0; color: #fff; font-size: 1.1em; }
 .gameCard small { color: #88a; font-size: 0.82em; }
 
-/* ── Toolbar button colors ── */
+/* ── Button collors Do NOT change lol── */
 #btnSmall    { background: var(--purple); color: white; }
 #btnNormal   { background: var(--dark-purple); color: white; }
 #btnBig      { background: var(--indigo); color: white; }
@@ -72,6 +72,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 #btnLoad     { background: var(--blue); color: white; }
 #btnPublish  { background: var(--pink); color: white; }
 #btnShareLink{ background: var(--teal); color: white; }
+#btnBg       { background: #455A64; color: white; }
+#btnRotate   { background: #5C6BC0; color: white; }
 #btnHome     { background: #555; color: white; }
 #btnBackExplore { background: #555; color: white; margin-bottom: 16px; }
 #btnAsphalt  { background: #37474F; color: white; }
@@ -89,6 +91,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 #mobileControls button { font-size: 1.6em; padding: 14px 28px; border-radius: 12px; background: #333; color: #fff; border: 2px solid #555; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 #mobileControls button:active { background: #555; transform: scale(0.95); }
 #muteBtn { position: fixed; bottom: 16px; right: 16px; z-index: 999; font-size: 1.3em; padding: 10px 14px; border-radius: 50%; background: #333; color: #fff; border: 2px solid #555; cursor: pointer; }
+#canvasRow { display: flex; align-items: flex-start; gap: 10px; justify-content: center; }
+#colorPicker { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 4px; }
+#colorPicker label { color: #aac; font-size: 0.75em; font-weight: 700; writing-mode: vertical-rl; text-orientation: mixed; letter-spacing: 1px; }
+#blockColor { width: 36px; height: 160px; border: none; border-radius: 8px; cursor: pointer; padding: 0; background: none; }
 </style>
 </head>
 <body>
@@ -124,10 +130,18 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
       <button id="btnLoad">📂 Load</button>
       <button id="btnPublish">🚀 (BROKEN!!)</button>
       <button id="btnShareLink">🔗 Share Link</button>
+      <button id="btnBg">🎨 Background</button>
+      <button id="btnRotate">🔄 Rotate: 0°</button>
       <button id="btnHome">🏠 Home</button>
     </div>
     <div id="statusMsg"></div>
-    <canvas id="editor" width="800" height="500"></canvas>
+    <div id="canvasRow">
+      <div id="colorPicker">
+        <label>COLOR</label>
+        <input type="color" id="blockColor" value="#888888" title="Block color" />
+      </div>
+      <canvas id="editor" width="800" height="500"></canvas>
+    </div>
     <div id="mobileControls">
       <button id="btnLeft">◀</button>
       <button id="btnJump">▲ Jump</button>
@@ -166,6 +180,9 @@ async function fetchGames() {
   var statusMsg = document.getElementById("statusMsg");
 
   var selectedTool = "block", selectedSize = "normal";
+  var blockColor = "#888888";
+  var bgColor = "#e8e8e8";
+  var blockRotation = 0;
   var gravityOnNewBlocks = true, loopRunning = false, hasWon = false;
   var gravity = 0.5;
   var cameraX = 0;
@@ -226,6 +243,12 @@ async function fetchGames() {
   document.getElementById("btnLoad").addEventListener("click", loadGame);
   document.getElementById("btnPublish").addEventListener("click", publishGame);
   document.getElementById("btnShareLink").addEventListener("click", shareLink);
+  document.getElementById("btnBg").addEventListener("click", function(){ bgColor = blockColor; });
+  document.getElementById("btnRotate").addEventListener("click", function(){
+    blockRotation = (blockRotation + 45) % 360;
+    this.textContent = "🔄 Rotate: " + blockRotation + "°";
+  });
+  document.getElementById("blockColor").addEventListener("input", function(){ blockColor = this.value; });
 
   setTool("block"); setSize("normal");
   startCooldownUI();
@@ -254,10 +277,10 @@ async function fetchGames() {
   canvas.addEventListener("mousedown", function(e){
     var rect=canvas.getBoundingClientRect(), x=e.clientX-rect.left+cameraX, y=e.clientY-rect.top, size=getSize();
     if(e.button===0){
-      if(selectedTool==="block")    blocks.push({x:x-size/2,y:y-size/2,width:size,height:size,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks});
-      if(selectedTool==="thin")     blocks.push({x:x-size/2,y:y-size/8,width:size,height:size/4,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks});
+      if(selectedTool==="block")    blocks.push({x:x-size/2,y:y-size/2,width:size,height:size,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks,color:blockColor,rotation:blockRotation});
+      if(selectedTool==="thin")     blocks.push({x:x-size/2,y:y-size/8,width:size,height:size/4,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks,color:blockColor,rotation:blockRotation});
       if(selectedTool==="triangle") triangles.push({x:x-size/2,y:y-size/2,width:size,height:size,vy:.5});
-      if(selectedTool==="asphalt")  asphalts.push({x:x-size/2,y:y-size/2,width:size,height:size,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks});
+      if(selectedTool==="asphalt")  asphalts.push({x:x-size/2,y:y-size/2,width:size,height:size,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks,color:blockColor,rotation:blockRotation});
       if(selectedTool==="ice")      ices.push({x:x-size/2,y:y-size/2,width:size,height:size,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks});
       if(selectedTool==="bounce")   bounces.push({x:x-size/2,y:y-size/2,width:size,height:size/3,vy:gravityOnNewBlocks?.5:0,gravity:gravityOnNewBlocks});
       if(selectedTool==="win")      wins.push({x:x-size/2,y:y-size/2,width:size,height:size});
@@ -349,23 +372,25 @@ async function fetchGames() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.save();
     ctx.translate(-cameraX, 0);
-    ctx.fillStyle="#e8e8e8";ctx.fillRect(cameraX,0,canvas.width,canvas.height);
+    ctx.fillStyle=bgColor;ctx.fillRect(cameraX,0,canvas.width,canvas.height);
     ctx.fillStyle="#222";ctx.fillRect(cameraX,canvas.height-10,canvas.width,10);
-    ctx.fillStyle="#888";for(var i=0;i<blocks.length;i++){var b=blocks[i];ctx.fillRect(b.x,b.y,b.width,b.height);}
-    ctx.fillStyle="#37474F";for(var i=0;i<asphalts.length;i++){var a=asphalts[i];ctx.fillRect(a.x,a.y,a.width,a.height);}
+    for(var i=0;i<blocks.length;i++){var b=blocks[i];ctx.save();ctx.translate(b.x+b.width/2,b.y+b.height/2);if(b.rotation)ctx.rotate(b.rotation*Math.PI/180);ctx.fillStyle=b.color||"#888";ctx.fillRect(-b.width/2,-b.height/2,b.width,b.height);ctx.restore();}
+    for(var i=0;i<asphalts.length;i++){var a=asphalts[i];ctx.save();ctx.translate(a.x+a.width/2,a.y+a.height/2);if(a.rotation)ctx.rotate(a.rotation*Math.PI/180);ctx.fillStyle=a.color||"#37474F";ctx.fillRect(-a.width/2,-a.height/2,a.width,a.height);ctx.restore();}
     ctx.fillStyle="#80DEEA";for(var i=0;i<ices.length;i++){var ic=ices[i];ctx.fillRect(ic.x,ic.y,ic.width,ic.height);}
     ctx.fillStyle="#FF5722";for(var i=0;i<bounces.length;i++){var bo=bounces[i];ctx.fillRect(bo.x,bo.y,bo.width,bo.height);}
     ctx.fillStyle="#e53935";for(var i=0;i<triangles.length;i++){var t=triangles[i];ctx.beginPath();ctx.moveTo(t.x+t.width/2,t.y);ctx.lineTo(t.x,t.y+t.height);ctx.lineTo(t.x+t.width,t.y+t.height);ctx.closePath();ctx.fill();}
     ctx.fillStyle="#FFD700";for(var i=0;i<wins.length;i++){var w=wins[i];ctx.fillRect(w.x,w.y,w.width,w.height);}
     if(spawnPoint){ctx.fillStyle="#00BCD4";ctx.fillRect(spawnPoint.x,spawnPoint.y,spawnPoint.width,spawnPoint.height);ctx.fillStyle="#000";ctx.font="bold 11px Arial";ctx.textAlign="center";ctx.fillText("SPAWN",spawnPoint.x+spawnPoint.width/2,spawnPoint.y+14);ctx.fillText("HERE",spawnPoint.x+spawnPoint.width/2,spawnPoint.y+28);ctx.textAlign="left";}
     ctx.fillStyle="#4CAF50";ctx.fillRect(player.x,player.y,player.width,player.height);
+    // Version text bottom-left (screen-space, drawn after restore)
     ctx.restore();
+    ctx.fillStyle="rgba(0,0,0,0.35)";ctx.font="bold 13px 'Nunito',sans-serif";ctx.textAlign="left";ctx.fillText("v1.2.0",6,canvas.height-6);
   }
 
   // ── Save / Load / Publish / Share ─────────────────────────────────────────
   function saveGame(){
     var title=document.getElementById("titleInput").value||"Untitled Game";
-    localStorage.setItem("savedGame",JSON.stringify({title:title,blocks:blocks,triangles:triangles,wins:wins,asphalts:asphalts,ices:ices,bounces:bounces,spawnPoint:spawnPoint}));
+    localStorage.setItem("savedGame",JSON.stringify({title:title,blocks:blocks,triangles:triangles,wins:wins,asphalts:asphalts,ices:ices,bounces:bounces,spawnPoint:spawnPoint,bgColor:bgColor}));
     statusMsg.textContent="💾 Saved locally!";
     setTimeout(()=>statusMsg.textContent="",2000);
   }
@@ -378,6 +403,7 @@ async function fetchGames() {
     if(data.asphalts)asphalts.push.apply(asphalts,data.asphalts);
     if(data.ices)ices.push.apply(ices,data.ices);
     if(data.bounces)bounces.push.apply(bounces,data.bounces);
+    if(data.bgColor)bgColor=data.bgColor;
     spawnPoint=data.spawnPoint||null;
     if(spawnPoint){player.spawnX=spawnPoint.x;player.spawnY=spawnPoint.y;player.x=player.spawnX;player.y=player.spawnY;}
     document.getElementById("titleInput").value=data.title;
