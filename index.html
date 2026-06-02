@@ -121,7 +121,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 </div>
 
 <div id="explorePage"></div>
-
+#editorHelp {
+  color: #333;
+  font-weight: bold;
+  margin-top: 10px;
+}
 <script>
 (function () {
 
@@ -254,11 +258,6 @@ async function fetchGames() {
   function startEditor(){ home.style.display="none"; editorContainer.style.display="block"; explorePage.style.display="none"; startLoop(); }
   function startLoop(){ if(loopRunning)return; loopRunning=true; gameLoop(); }
   function gameLoop(){ if(!loopRunning)return; update(); draw(); requestAnimationFrame(gameLoop); }
-#editorHelp {
-  color: #333;
-  font-weight: bold;
-  margin-top: 10px;
-}
   var keys={};
   document.addEventListener("keydown",function(e){keys[e.key.toLowerCase()]=true;});
   document.addEventListener("keyup",function(e){keys[e.key.toLowerCase()]=false;});
