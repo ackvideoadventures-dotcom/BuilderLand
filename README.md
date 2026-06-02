@@ -1,0 +1,1 @@
+This is a site about making a basic 2d platformer game. SUPPERR work in progress but have fun messing around with my already created levels, and make your own if you would like. DO NOT spam the publish button lol
