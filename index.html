@@ -3,56 +3,88 @@
 <head>
 <title>BuilderLand</title>
 <style>
-body { font-family: Arial; text-align: center; margin: 0; }
-#home { padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-#home h1 { font-size: 3em; margin: 0 0 10px 0; }
-#home .menu-buttons { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-#home .menu-buttons button { font-size: 1.3em; padding: 18px 40px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s, opacity 0.1s; }
-#home .menu-buttons button:hover { transform: scale(1.05); opacity: 0.92; }
-#btnCreate  { background: #4CAF50; color: white; }
-#btnExplore { background: #2196F3; color: white; }
-#editorContainer { display: none; height: 100vh; overflow-y: auto; }
-#creatorPanel { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; }
-#toolbar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-button { padding: 8px 12px; cursor: pointer; border-radius: 6px; border: 1px solid rgba(0,0,0,0.2); font-size: 0.95em; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-#editor { border: 2px solid black; }
-.selected { background: #4CAF50; color: white; }
-#explorePage { display: none; height: 100vh; overflow-y: auto; padding: 20px; }
-.gameCard { border: 1px solid black; margin: 10px auto; padding: 10px; max-width: 400px; border-radius: 8px; }
-#setupBanner { background: #fff3cd; border: 1px solid #ffc107; padding: 14px; margin: 10px auto; max-width: 600px; border-radius: 8px; font-size: 0.95em; display: none; }
-/* Toolbar button colors */
-#btnSmall    { background: #9C27B0; color: white; }
-#btnNormal   { background: #673AB7; color: white; }
-#btnBig      { background: #3F51B5; color: white; }
-#btnGravity  { background: #FF9800; color: white; }
-#btnBlock    { background: #607D8B; color: white; }
-#btnThin     { background: #795548; color: white; }
-#btnTriangle { background: #F44336; color: white; }
-#btnSpawn    { background: #00BCD4; color: white; }
-#btnWin      { background: #FFC107; color: #333; }
-#btnSave     { background: #4CAF50; color: white; }
-#btnLoad     { background: #2196F3; color: white; }
-#btnPublish  { background: #E91E63; color: white; }
-#btnShareLink{ background: #009688; color: white; }
-#btnHome     { background: #9E9E9E; color: white; }
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;900&display=swap');
+
+:root {
+  --green: #4CAF50;
+  --blue: #2196F3;
+  --pink: #E91E63;
+  --teal: #009688;
+  --orange: #FF9800;
+  --purple: #9C27B0;
+  --dark-purple: #673AB7;
+  --indigo: #3F51B5;
+  --cyan: #00BCD4;
+  --yellow: #FFC107;
+  --gray: #607D8B;
+  --brown: #795548;
+  --red: #F44336;
+  --bg: #1a1a2e;
+  --card: #16213e;
+  --surface: #ffffff;
+}
+
+* { box-sizing: border-box; }
+body { font-family: 'Nunito', sans-serif; text-align: center; margin: 0; background: var(--bg); color: #eee; }
+
+/* ── Home ── */
+#home { padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 24px; min-height: 100vh; justify-content: center; }
+#home h1 { font-family: 'Press Start 2P', monospace; font-size: 2.2em; margin: 0 0 6px 0; color: #fff; text-shadow: 0 0 20px rgba(33,150,243,0.8), 0 4px 0 #0d47a1; letter-spacing: 2px; }
+#home p { color: #aac; font-size: 1.1em; margin: 0; }
+#home .menu-buttons { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+#home .menu-buttons button { font-family: 'Nunito', sans-serif; font-size: 1.2em; padding: 18px 44px; border-radius: 14px; border: none; cursor: pointer; font-weight: 900; transition: transform 0.12s, box-shadow 0.12s; letter-spacing: 0.5px; }
+#home .menu-buttons button:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+#btnCreate  { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #0a3d2e; }
+#btnExplore { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #0a2040; }
+
+/* ── Editor ── */
+#editorContainer { display: none; height: 100vh; overflow-y: auto; background: var(--bg); }
+#creatorPanel { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 20px; }
+#titleInput { background: var(--card); border: 2px solid var(--surface); color: #eee; border-radius: 8px; padding: 8px 14px; font-size: 1em; font-family: 'Nunito', sans-serif; font-weight: 700; outline: none; width: 260px; }
+#titleInput:focus { border-color: var(--blue); }
+#toolbar { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+button { padding: 8px 14px; cursor: pointer; border-radius: 8px; border: none; font-size: 0.9em; font-family: 'Nunito', sans-serif; font-weight: 700; transition: opacity 0.1s, transform 0.1s; }
+button:hover:not(:disabled) { opacity: 0.88; transform: scale(1.04); }
+button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+#editor { border: 3px solid var(--surface); border-radius: 8px; background: #fff; display: block; }
+
+/* ── Explore ── */
+#explorePage { display: none; min-height: 100vh; padding: 30px 20px; background: var(--bg); }
+#explorePage h2 { font-family: 'Press Start 2P', monospace; font-size: 1.3em; color: #fff; text-shadow: 0 0 12px rgba(33,150,243,0.6); margin-bottom: 20px; }
+.gameCard { background: var(--card); border: 1px solid var(--surface); margin: 10px auto; padding: 16px 20px; max-width: 420px; border-radius: 14px; text-align: left; transition: transform 0.12s, box-shadow 0.12s; }
+.gameCard:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+.gameCard h3 { margin: 0 0 6px 0; color: #fff; font-size: 1.1em; }
+.gameCard small { color: #88a; font-size: 0.82em; }
+
+/* ── Toolbar button colors ── */
+#btnSmall    { background: var(--purple); color: white; }
+#btnNormal   { background: var(--dark-purple); color: white; }
+#btnBig      { background: var(--indigo); color: white; }
+#btnGravity  { background: var(--orange); color: white; }
+#btnBlock    { background: var(--gray); color: white; }
+#btnThin     { background: var(--brown); color: white; }
+#btnTriangle { background: var(--red); color: white; }
+#btnSpawn    { background: var(--cyan); color: #222; }
+#btnWin      { background: var(--yellow); color: #333; }
+#btnSave     { background: var(--green); color: white; }
+#btnLoad     { background: var(--blue); color: white; }
+#btnPublish  { background: var(--pink); color: white; }
+#btnShareLink{ background: var(--teal); color: white; }
+#btnHome     { background: #555; color: white; }
+#btnBackExplore { background: #555; color: white; margin-bottom: 16px; }
+
+.explore-back { background: #444; color: #eee; margin-bottom: 20px; }
+.play-btn { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #0a3d2e; font-weight: 900; margin-top: 10px; }
+.selected-tool { outline: 3px solid #fff; outline-offset: 2px; }
+
+#statusMsg { font-size: 0.88em; color: #aac; min-height: 1.2em; }
 </style>
 </head>
 <body>
 
 <div id="home">
   <h1>🏗️ BuilderLand</h1>
-  <p style="font-size:1.1em;color:#555;margin:0">Build and share your own platformer levels!</p>
-  <div id="setupBanner">
-    ⚙️ <strong>One-time setup needed for Explore/Publish:</strong>
-    Go to <a href="https://jsonbin.io" target="_blank">jsonbin.io</a>, sign up free,
-    create an API key, then create a new Bin with contents <code>{"games":[]}</code>.
-    Paste your <strong>API Key</strong> and <strong>Bin ID</strong> into the two boxes below and click Save.
-    <br><br>
-    <input id="setupKey" placeholder="API Key  ($2a$10$...)" style="width:340px;padding:6px;" />
-    <input id="setupBin" placeholder="Bin ID  (686...)" style="width:200px;padding:6px;margin-left:6px;" />
-    <button onclick="saveSetup()" style="margin-left:6px;">💾 Save</button>
-  </div>
+  <p>Build and share your own platformer levels!</p>
   <div class="menu-buttons">
     <button id="btnCreate">🛠️ Create Game</button>
     <button id="btnExplore">🌍 Explore Games</button>
@@ -78,6 +110,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
       <button id="btnShareLink">🔗 Share Link</button>
       <button id="btnHome">🏠 Home</button>
     </div>
+    <div id="statusMsg"></div>
     <canvas id="editor" width="800" height="500"></canvas>
   </div>
 </div>
@@ -87,73 +120,45 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 <script>
 (function () {
 
-  // ── Storage config (saved in localStorage so it survives page reloads) ────
-  function getConfig() {
-    try { return JSON.parse(localStorage.getItem("blConfig") || "{}"); } catch(e) { return {}; }
-  }
-  function binURL() {
-    var c = getConfig();
-    return c.binId ? "https://api.jsonbin.io/v3/b/" + c.binId : null;
-  }
-  function apiKey() { return getConfig().apiKey || null; }
-  function isConfigured() { var c = getConfig(); return !!(c.binId && c.apiKey); }
+  // ── Shared server storage for published games ─────────────────────────────
+  // Uses window.storage (shared: true) — all visitors see the same game list.
+  // Games stored individually as "games:<id>" so writes don't overwrite each other.
 
-  window.saveSetup = function() {
-    var key = document.getElementById("setupKey").value.trim();
-    var bin = document.getElementById("setupBin").value.trim();
-    if (!key || !bin) { alert("Please fill in both fields."); return; }
-    localStorage.setItem("blConfig", JSON.stringify({ apiKey: key, binId: bin }));
-    document.getElementById("setupBanner").style.display = "none";
-    alert("✅ Saved! Publish and Explore will now work.");
-  };
-
-  function showSetupBanner() {
-    document.getElementById("setupBanner").style.display = "block";
-    var c = getConfig();
-    if (c.apiKey) document.getElementById("setupKey").value = c.apiKey;
-    if (c.binId)  document.getElementById("setupBin").value  = c.binId;
-  }
-
-  if (!isConfigured()) showSetupBanner();
-
-  // ── JSONBin fetch/push ────────────────────────────────────────────────────
-  function fetchGames() {
-    if (!isConfigured()) return Promise.reject(new Error("Not configured — see setup banner on the home screen."));
-    return fetch(binURL() + "/latest", {
-      headers: { "X-Master-Key": apiKey() }
-    })
-      .then(function(r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function(res) {
-        var games = (res.record && res.record.games) ? res.record.games : [];
-        return games.slice().sort(function(a,b){ return b.publishedAt - a.publishedAt; }).slice(0,50);
-      });
+  async function fetchGames() {
+    try {
+      const result = await window.storage.list("games:", true);
+      if (!result || !result.keys || result.keys.length === 0) return [];
+      const entries = await Promise.all(
+        result.keys.map(async (key) => {
+          try {
+            const r = await window.storage.get(key, true);
+            return r ? JSON.parse(r.value) : null;
+          } catch (e) { return null; }
+        })
+      );
+      return entries
+        .filter(Boolean)
+        .sort((a, b) => b.publishedAt - a.publishedAt)
+        .slice(0, 50);
+    } catch (e) {
+      console.error("fetchGames error:", e);
+      return [];
+    }
   }
 
-  function pushGame(game) {
-    if (!isConfigured()) return Promise.reject(new Error("Not configured — see setup banner on the home screen."));
-    return fetch(binURL() + "/latest", {
-      headers: { "X-Master-Key": apiKey() }
-    })
-      .then(function(r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function(res) {
-        var games = (res.record && res.record.games) ? res.record.games : [];
-        games.push(game);
-        if (games.length > 100) games = games.slice(games.length - 100);
-        return fetch(binURL(), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", "X-Master-Key": apiKey() },
-          body: JSON.stringify({ games: games })
-        });
-      })
-      .then(function(r) { if (!r.ok) throw new Error("HTTP " + r.status); });
+  async function pushGame(game) {
+    const key = "games:" + game.id;
+    const result = await window.storage.set(key, JSON.stringify(game), true);
+    if (!result) throw new Error("Storage write failed");
   }
 
-  // ── Game state ────────────────────────────────────────────────────────────
+  // ── Game state ─────────────────────────────────────────────────────────────
   var canvas = document.getElementById("editor");
   var ctx = canvas.getContext("2d");
   var home = document.getElementById("home");
   var editorContainer = document.getElementById("editorContainer");
   var explorePage = document.getElementById("explorePage");
+  var statusMsg = document.getElementById("statusMsg");
 
   var selectedTool = "block", selectedSize = "normal";
   var gravityOnNewBlocks = true, loopRunning = false, hasWon = false;
@@ -178,27 +183,42 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     tick();
   }
 
-  // ── Button wiring ─────────────────────────────────────────────────────────
+  // ── Tool selection highlight ───────────────────────────────────────────────
+  var toolBtnMap = { block:"btnBlock", thin:"btnThin", triangle:"btnTriangle", spawn:"btnSpawn", win:"btnWin" };
+  function setTool(t) {
+    selectedTool = t;
+    Object.values(toolBtnMap).forEach(id => document.getElementById(id).classList.remove("selected-tool"));
+    if (toolBtnMap[t]) document.getElementById(toolBtnMap[t]).classList.add("selected-tool");
+  }
+  function setSize(s) {
+    selectedSize = s;
+    ["btnSmall","btnNormal","btnBig"].forEach(id => document.getElementById(id).classList.remove("selected-tool"));
+    var m = {small:"btnSmall",normal:"btnNormal",big:"btnBig"}[s];
+    if (m) document.getElementById(m).classList.add("selected-tool");
+  }
+
+  // ── Button wiring ──────────────────────────────────────────────────────────
   document.getElementById("btnCreate").addEventListener("click", startEditor);
   document.getElementById("btnExplore").addEventListener("click", openExplore);
   document.getElementById("btnHome").addEventListener("click", goHome);
-  document.getElementById("btnSmall").addEventListener("click", function(){ selectedSize="small"; });
-  document.getElementById("btnNormal").addEventListener("click", function(){ selectedSize="normal"; });
-  document.getElementById("btnBig").addEventListener("click", function(){ selectedSize="big"; });
+  document.getElementById("btnSmall").addEventListener("click", function(){ setSize("small"); });
+  document.getElementById("btnNormal").addEventListener("click", function(){ setSize("normal"); });
+  document.getElementById("btnBig").addEventListener("click", function(){ setSize("big"); });
   document.getElementById("btnGravity").addEventListener("click", function(){
     gravityOnNewBlocks=!gravityOnNewBlocks;
     this.textContent="🌍 Gravity: "+(gravityOnNewBlocks?"ON":"OFF");
   });
-  document.getElementById("btnBlock").addEventListener("click", function(){ selectedTool="block"; });
-  document.getElementById("btnThin").addEventListener("click", function(){ selectedTool="thin"; });
-  document.getElementById("btnTriangle").addEventListener("click", function(){ selectedTool="triangle"; });
-  document.getElementById("btnSpawn").addEventListener("click", function(){ selectedTool="spawn"; });
-  document.getElementById("btnWin").addEventListener("click", function(){ selectedTool="win"; });
+  document.getElementById("btnBlock").addEventListener("click", function(){ setTool("block"); });
+  document.getElementById("btnThin").addEventListener("click", function(){ setTool("thin"); });
+  document.getElementById("btnTriangle").addEventListener("click", function(){ setTool("triangle"); });
+  document.getElementById("btnSpawn").addEventListener("click", function(){ setTool("spawn"); });
+  document.getElementById("btnWin").addEventListener("click", function(){ setTool("win"); });
   document.getElementById("btnSave").addEventListener("click", saveGame);
   document.getElementById("btnLoad").addEventListener("click", loadGame);
   document.getElementById("btnPublish").addEventListener("click", publishGame);
   document.getElementById("btnShareLink").addEventListener("click", shareLink);
 
+  setTool("block"); setSize("normal");
   startCooldownUI();
 
   // ── Canvas interaction ────────────────────────────────────────────────────
@@ -225,10 +245,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   });
 
   // ── Navigation ────────────────────────────────────────────────────────────
-  function goHome(){ home.style.display="block"; editorContainer.style.display="none"; explorePage.style.display="none"; if(!isConfigured())showSetupBanner(); }
+  function goHome(){ home.style.display="flex"; editorContainer.style.display="none"; explorePage.style.display="none"; loopRunning=false; }
   function startEditor(){ home.style.display="none"; editorContainer.style.display="block"; explorePage.style.display="none"; startLoop(); }
   function startLoop(){ if(loopRunning)return; loopRunning=true; gameLoop(); }
-  function gameLoop(){ update(); draw(); if(loopRunning) requestAnimationFrame(gameLoop); }
+  function gameLoop(){ if(!loopRunning)return; update(); draw(); requestAnimationFrame(gameLoop); }
 
   var keys={};
   document.addEventListener("keydown",function(e){keys[e.key.toLowerCase()]=true;});
@@ -244,24 +264,26 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     for(var i=0;i<triangles.length;i++){var t=triangles[i];t.vy+=gravity;t.y+=t.vy;if(t.y+t.height>canvas.height-10){t.y=canvas.height-10-t.height;t.vy=0;}for(var j=0;j<blocks.length;j++){var b=blocks[j];if(t.x<b.x+b.width&&t.x+t.width>b.x&&t.y<b.y+b.height&&t.y+t.height>b.y){if(t.vy>0){t.y=b.y-t.height;t.vy=0;}}}}
     for(var i=0;i<blocks.length;i++){var b=blocks[i];if(player.x<b.x+b.width&&player.x+player.width>b.x&&player.y<b.y+b.height&&player.y+player.height>b.y){if(player.vy>0){player.y=b.y-player.height;player.vy=0;player.onGround=true;}}}
     for(var i=0;i<triangles.length;i++){var t=triangles[i];if(player.x<t.x+t.width&&player.x+player.width>t.x&&player.y<t.y+t.height&&player.y+player.height>t.y){player.x=player.spawnX;player.y=player.spawnY;player.vx=0;player.vy=0;hasWon=false;}}
-    for(var i=0;i<wins.length;i++){var w=wins[i];if(!hasWon&&player.x<w.x+w.width&&player.x+player.width>w.x&&player.y<w.y+w.height&&player.y+player.height>w.y){hasWon=true;alert("YOU WIN!");}}
+    for(var i=0;i<wins.length;i++){var w=wins[i];if(!hasWon&&player.x<w.x+w.width&&player.x+player.width>w.x&&player.y<w.y+w.height&&player.y+player.height>w.y){hasWon=true;alert("🎉 YOU WIN!");}}
   }
 
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="black";ctx.fillRect(0,canvas.height-10,canvas.width,10);
-    ctx.fillStyle="gray";for(var i=0;i<blocks.length;i++){var b=blocks[i];ctx.fillRect(b.x,b.y,b.width,b.height);}
-    ctx.fillStyle="red";for(var i=0;i<triangles.length;i++){var t=triangles[i];ctx.beginPath();ctx.moveTo(t.x+t.width/2,t.y);ctx.lineTo(t.x,t.y+t.height);ctx.lineTo(t.x+t.width,t.y+t.height);ctx.closePath();ctx.fill();}
-    ctx.fillStyle="gold";for(var i=0;i<wins.length;i++){var w=wins[i];ctx.fillRect(w.x,w.y,w.width,w.height);}
-    if(spawnPoint){ctx.fillStyle="cyan";ctx.fillRect(spawnPoint.x,spawnPoint.y,spawnPoint.width,spawnPoint.height);ctx.fillStyle="black";ctx.font="bold 11px Arial";ctx.textAlign="center";ctx.fillText("SPAWN",spawnPoint.x+spawnPoint.width/2,spawnPoint.y+14);ctx.fillText("HERE",spawnPoint.x+spawnPoint.width/2,spawnPoint.y+28);ctx.textAlign="left";}
-    ctx.fillStyle="green";ctx.fillRect(player.x,player.y,player.width,player.height);
+    ctx.fillStyle="#e8e8e8";ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#222";ctx.fillRect(0,canvas.height-10,canvas.width,10);
+    ctx.fillStyle="#888";for(var i=0;i<blocks.length;i++){var b=blocks[i];ctx.fillRect(b.x,b.y,b.width,b.height);}
+    ctx.fillStyle="#e53935";for(var i=0;i<triangles.length;i++){var t=triangles[i];ctx.beginPath();ctx.moveTo(t.x+t.width/2,t.y);ctx.lineTo(t.x,t.y+t.height);ctx.lineTo(t.x+t.width,t.y+t.height);ctx.closePath();ctx.fill();}
+    ctx.fillStyle="#FFD700";for(var i=0;i<wins.length;i++){var w=wins[i];ctx.fillRect(w.x,w.y,w.width,w.height);}
+    if(spawnPoint){ctx.fillStyle="#00BCD4";ctx.fillRect(spawnPoint.x,spawnPoint.y,spawnPoint.width,spawnPoint.height);ctx.fillStyle="#000";ctx.font="bold 11px Arial";ctx.textAlign="center";ctx.fillText("SPAWN",spawnPoint.x+spawnPoint.width/2,spawnPoint.y+14);ctx.fillText("HERE",spawnPoint.x+spawnPoint.width/2,spawnPoint.y+28);ctx.textAlign="left";}
+    ctx.fillStyle="#4CAF50";ctx.fillRect(player.x,player.y,player.width,player.height);
   }
 
   // ── Save / Load / Publish / Share ─────────────────────────────────────────
   function saveGame(){
     var title=document.getElementById("titleInput").value||"Untitled Game";
     localStorage.setItem("savedGame",JSON.stringify({title:title,blocks:blocks,triangles:triangles,wins:wins,spawnPoint:spawnPoint}));
-    alert("Game Saved!");
+    statusMsg.textContent="💾 Saved locally!";
+    setTimeout(()=>statusMsg.textContent="",2000);
   }
 
   function loadGame(){
@@ -272,28 +294,39 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     spawnPoint=data.spawnPoint||null;
     if(spawnPoint){player.spawnX=spawnPoint.x;player.spawnY=spawnPoint.y;player.x=player.spawnX;player.y=player.spawnY;}
     document.getElementById("titleInput").value=data.title;
-    alert("Game Loaded!");
+    statusMsg.textContent="📂 Loaded!";
+    setTimeout(()=>statusMsg.textContent="",2000);
   }
 
   function publishGame(){
-    if(!isConfigured()){
-      alert("Publishing requires a JSONBin setup.\n\nGo back to the home screen — you'll see a yellow setup banner with instructions.");
-      return;
-    }
     var rem=getCooldownRemaining();
     if(rem>0){alert("Please wait "+Math.ceil(rem/1000)+"s before publishing again.");return;}
     var title=document.getElementById("titleInput").value.trim()||"Untitled Game";
     var btn=document.getElementById("btnPublish");
     btn.disabled=true; btn.textContent="⏳ Publishing...";
-    var game={title:title,publishedAt:Date.now(),blocks:JSON.parse(JSON.stringify(blocks)),triangles:JSON.parse(JSON.stringify(triangles)),wins:JSON.parse(JSON.stringify(wins)),spawnPoint:spawnPoint};
+    statusMsg.textContent="Publishing to server...";
+
+    var id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+    var game={
+      id: id,
+      title:title,
+      publishedAt:Date.now(),
+      blocks:JSON.parse(JSON.stringify(blocks)),
+      triangles:JSON.parse(JSON.stringify(triangles)),
+      wins:JSON.parse(JSON.stringify(wins)),
+      spawnPoint:spawnPoint
+    };
+
     pushGame(game).then(function(){
       localStorage.setItem("lastPublishTime",Date.now().toString());
       startCooldownUI();
-      alert("🎉 Published! Everyone can see it in Explore.");
+      statusMsg.textContent="🎉 Published! Everyone can see it in Explore.";
+      setTimeout(()=>statusMsg.textContent="",4000);
     }).catch(function(e){
       console.error("Publish failed:",e);
       alert("Publish failed: "+e.message);
       startCooldownUI();
+      statusMsg.textContent="";
     });
   }
 
@@ -319,27 +352,36 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   })();
 
   function openExplore(){
-    home.style.display="none"; editorContainer.style.display="none"; explorePage.style.display="block";
+    home.style.display="none"; editorContainer.style.display="none"; explorePage.style.display="block"; loopRunning=false;
     renderExplore();
   }
 
   function renderExplore(){
-    explorePage.innerHTML="<h2>🌍 Published Games</h2><p>Loading...</p>";
+    explorePage.innerHTML='<h2>🌍 Published Games</h2><p style="color:#aac">Loading games from server...</p>';
     fetchGames().then(function(games){
-      explorePage.innerHTML="<h2>🌍 Published Games</h2>";
-      var backBtn=document.createElement("button"); backBtn.textContent="🏠 Back"; backBtn.onclick=goHome;
+      explorePage.innerHTML='<h2>🌍 Published Games</h2>';
+      var backBtn=document.createElement("button");
+      backBtn.textContent="🏠 Back to Home"; backBtn.className="explore-back"; backBtn.onclick=goHome;
       explorePage.appendChild(backBtn);
-      if(games.length===0){var p=document.createElement("p");p.textContent="No games yet — be the first!";explorePage.appendChild(p);return;}
+
+      if(games.length===0){
+        var p=document.createElement("p");
+        p.style.color="#aac";
+        p.textContent="No games published yet — be the first!";
+        explorePage.appendChild(p);
+        return;
+      }
       games.forEach(function(g){
         var card=document.createElement("div"); card.className="gameCard";
         var date=g.publishedAt?new Date(g.publishedAt).toLocaleString():"";
-        card.innerHTML="<h3>"+g.title+"</h3>"+(date?"<small>"+date+"</small><br><br>":"");
-        var btn=document.createElement("button"); btn.textContent="▶️ Play";
+        card.innerHTML='<h3>'+escapeHtml(g.title)+'</h3>'+(date?'<small>📅 '+date+'</small>':'');
+        var btn=document.createElement("button");
+        btn.textContent="▶️ Play"; btn.className="play-btn";
         btn.onclick=function(){playGame(g);}; card.appendChild(btn); explorePage.appendChild(card);
       });
     }).catch(function(e){
-      explorePage.innerHTML="<h2>🌍 Published Games</h2><p style='color:red'>"+e.message+"</p>";
-      var backBtn=document.createElement("button"); backBtn.textContent="🏠 Back"; backBtn.onclick=goHome; explorePage.appendChild(backBtn);
+      explorePage.innerHTML='<h2>🌍 Published Games</h2><p style="color:#f88">Error loading games: '+escapeHtml(e.message)+'</p>';
+      var backBtn=document.createElement("button"); backBtn.textContent="🏠 Back"; backBtn.className="explore-back"; backBtn.onclick=goHome; explorePage.appendChild(backBtn);
     });
   }
 
@@ -350,7 +392,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     wins.push.apply(wins,JSON.parse(JSON.stringify(g.wins)));
     spawnPoint=g.spawnPoint||null;
     if(spawnPoint){player.spawnX=spawnPoint.x;player.spawnY=spawnPoint.y;player.x=player.spawnX;player.y=player.spawnY;}
-    hasWon=false; explorePage.style.display="none"; editorContainer.style.display="block"; startLoop();
+    hasWon=false; explorePage.style.display="none"; editorContainer.style.display="block"; loopRunning=false; startLoop();
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
 
 })();
