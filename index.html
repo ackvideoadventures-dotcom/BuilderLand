@@ -5,34 +5,22 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  text-align: center;
-  background: #111;
-  color: white;
+  margin:0;
+  font-family:sans-serif;
+  text-align:center;
+  background:#111;
+  color:white;
 }
 
-#home {
-  padding: 60px;
-}
+#home { padding:50px; }
+button { padding:10px; margin:5px; }
 
-button {
-  padding: 10px 20px;
-  margin: 10px;
-  cursor: pointer;
-}
-
-#editorContainer {
-  display: none;
-}
-
-#explorePage {
-  display: none;
-}
+#editorContainer { display:none; }
+#explorePage { display:none; }
 
 canvas {
-  background: white;
-  border: 2px solid black;
+  background:white;
+  border:2px solid black;
 }
 </style>
 </head>
@@ -40,33 +28,40 @@ canvas {
 <body>
 
 <div id="home">
-  <h1>BuilderLand</h1>
+  <h1>🏗️ BuilderLand</h1>
   <button id="btnCreate">Create</button>
   <button id="btnExplore">Explore</button>
 </div>
 
-<div id="editorContainer">
+  <div id="editorContainer">
+  <button id="btnBlock">Block</button>
+  <button id="btnTriangle">Triangle</button>
+  <button id="btnSpawn">Spawn</button>
+  <button id="btnWin">Win</button>
   <button id="btnPublish">Publish</button>
+
   <canvas id="editor" width="800" height="500"></canvas>
 </div>
 
 <div id="explorePage"></div>
 
 <script>
-(function () {
+(function(){
 
-const API_URL = window.location.origin;
+  const API_URL = window.location.origin;
 
- async function fetchGames() {
+// ── Load games ──
+async function fetchGames() {
   try {
     const res = await fetch(API_URL + "/games");
     return await res.json();
   } catch (e) {
-    console.error("Failed to load games:", e);
+    console.error("Load failed:", e);
     return [];
   }
 }
 
+// ── Publish game ──
 async function pushGame(game) {
   try {
     await fetch(API_URL + "/games", {
@@ -77,14 +72,16 @@ async function pushGame(game) {
       body: JSON.stringify(game)
     });
   } catch (e) {
-    console.error("Failed to publish:", e);
+    console.error("Publish failed:", e);
     alert("Publish failed");
   }
 }
 
- const canvas = document.getElementById("editor");
+  // ── Canvas setup ──
+const canvas = document.getElementById("editor");
 const ctx = canvas.getContext("2d");
 
+// ── Game data ──
 let blocks = [];
 let triangles = [];
 let wins = [];
@@ -92,62 +89,210 @@ let spawnPoint = null;
 
 let currentTool = "block";
 
-// simple drawing tools
-canvas.addEventListener("click", (e) => {
+// ── Tool buttons ──
+document.getElementById("btnBlock").onclick = () => currentTool = "block";
+document.getElementById("btnTriangle").onclick = () => currentTool = "triangle";
+document.getElementById("btnSpawn").onclick = () => currentTool = "spawn";
+document.getElementById("btnWin").onclick = () => currentTool = "win";
+
+// ── Place objects ──
+canvas.addEventListener("mousedown", (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  if (currentTool === "block") {
-    blocks.push({ x, y, width: 50, height: 50 });
+  // LEFT CLICK = place
+  if (e.button === 0) {
+    if (currentTool === "block") {
+      blocks.push({ x: x-25, y: y-25, width:50, height:50 });
+    }
+
+    if (currentTool === "triangle") {
+      triangles.push({ x: x-25, y: y-25, width:50, height:50 });
+    }
+
+    if (currentTool === "win") {
+      wins.push({ x: x-25, y: y-25, width:50, height:50 });
+    }
+
+    if (currentTool === "spawn") {
+      spawnPoint = { x: x-20, y: y-20, width:40, height:40 };
+    }
   }
 
-  if (currentTool === "triangle") {
-    triangles.push({ x, y, width: 50, height: 50 });
-  }
-
-  if (currentTool === "win") {
-    wins.push({ x, y, width: 50, height: 50 });
-  }
-
-  if (currentTool === "spawn") {
-    spawnPoint = { x, y, width: 40, height: 40 };
+  // RIGHT CLICK = delete
+  if (e.button === 2) {
+    blocks = blocks.filter(b => !(x>b.x && x<b.x+b.width && y>b.y && y<b.y+b.height));
+    triangles = triangles.filter(t => !(x>t.x && x<t.x+t.width && y>t.y && y<t.y+t.height));
+    wins = wins.filter(w => !(x>w.x && x<w.x+w.width && y>w.y && y<w.y+w.height));
   }
 
   draw();
 });
 
-// draw everything
+canvas.addEventListener("contextmenu", e => e.preventDefault());
+
+  // ── Player ──
+let player = {
+  x: 380,
+  y: 200,
+  width: 40,
+  height: 40,
+  vx: 0,
+  vy: 0,
+  onGround: false
+};
+
+let gravity = 0.5;
+let keys = {};
+let running = false;
+
+// ── Controls ──
+document.addEventListener("keydown", e => {
+  keys[e.key.toLowerCase()] = true;
+});
+
+document.addEventListener("keyup", e => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+// ── Game loop ──
+function startGame() {
+  if (running) return;
+  running = true;
+  loop();
+}
+
+function loop() {
+  if (!running) return;
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ── Physics ──
+function update() {
+  // movement
+  if (keys["a"]) player.vx = -4;
+  else if (keys["d"]) player.vx = 4;
+  else player.vx = 0;
+
+  if (keys[" "] && player.onGround) {
+    player.vy = -10;
+  }
+
+  player.vy += gravity;
+
+  player.x += player.vx;
+  player.y += player.vy;
+
+  player.onGround = false;
+
+  // ground
+  if (player.y + player.height > canvas.height - 10) {
+    player.y = canvas.height - 10 - player.height;
+    player.vy = 0;
+    player.onGround = true;
+  }
+
+  // blocks collision
+  blocks.forEach(b => {
+    if (
+      player.x < b.x + b.width &&
+      player.x + player.width > b.x &&
+      player.y < b.y + b.height &&
+      player.y + player.height > b.y
+    ) {
+      if (player.vy > 0) {
+        player.y = b.y - player.height;
+        player.vy = 0;
+        player.onGround = true;
+      }
+    }
+  });
+
+  // triangles = death
+  triangles.forEach(t => {
+    if (
+      player.x < t.x + t.width &&
+      player.x + player.width > t.x &&
+      player.y < t.y + t.height &&
+      player.y + player.height > t.y
+    ) {
+      resetPlayer();
+    }
+  });
+
+  // win
+  wins.forEach(w => {
+    if (
+      player.x < w.x + w.width &&
+      player.x + player.width > w.x &&
+      player.y < w.y + w.height &&
+      player.y + player.height > w.y
+    ) {
+      alert("YOU WIN!");
+      resetPlayer();
+    }
+  });
+}
+
+// ── Reset ──
+function resetPlayer() {
+  if (spawnPoint) {
+    player.x = spawnPoint.x;
+    player.y = spawnPoint.y;
+  } else {
+    player.x = 380;
+    player.y = 200;
+  }
+  player.vx = 0;
+  player.vy = 0;
+}
+
+  // ── Draw everything ──
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // ground
+  ctx.fillStyle = "#222";
+  ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+
+  // blocks
   ctx.fillStyle = "gray";
   blocks.forEach(b => {
     ctx.fillRect(b.x, b.y, b.width, b.height);
   });
 
+  // triangles
   ctx.fillStyle = "red";
   triangles.forEach(t => {
     ctx.beginPath();
-    ctx.moveTo(t.x, t.y);
-    ctx.lineTo(t.x + t.width, t.y);
-    ctx.lineTo(t.x + t.width / 2, t.y - t.height);
+    ctx.moveTo(t.x + t.width / 2, t.y);
+    ctx.lineTo(t.x, t.y + t.height);
+    ctx.lineTo(t.x + t.width, t.y + t.height);
     ctx.closePath();
     ctx.fill();
   });
 
+  // win blocks
   ctx.fillStyle = "yellow";
   wins.forEach(w => {
     ctx.fillRect(w.x, w.y, w.width, w.height);
   });
 
+  // spawn
   if (spawnPoint) {
     ctx.fillStyle = "cyan";
-    ctx.fillRect(spawnPoint.x, spawnPoint.y, spawnPoint.width, spawnPoint.height);
+    ctx.fillRect(spawnPoint.x, spawnPoint.y, 40, 40);
   }
+
+  // player
+  ctx.fillStyle = "green";
+  ctx.fillRect(player.x, player.y, player.width, player.height);
 }
 
- // ── Navigation ──
+// ── Navigation ──
 const home = document.getElementById("home");
 const editorContainer = document.getElementById("editorContainer");
 const explorePage = document.getElementById("explorePage");
@@ -156,6 +301,7 @@ document.getElementById("btnCreate").onclick = () => {
   home.style.display = "none";
   editorContainer.style.display = "block";
   explorePage.style.display = "none";
+  startGame();
 };
 
 document.getElementById("btnExplore").onclick = async () => {
@@ -165,11 +311,11 @@ document.getElementById("btnExplore").onclick = async () => {
 
   const games = await fetchGames();
 
-  explorePage.innerHTML = "<h2>Games</h2>";
+  explorePage.innerHTML = "<h2>Published Games</h2>";
 
   games.forEach(g => {
-    const div = document.createElement("div");
-    div.className = "gameCard";
+    const card = document.createElement("div");
+    card.className = "gameCard";
 
     const btn = document.createElement("button");
     btn.textContent = "Play";
@@ -184,19 +330,14 @@ document.getElementById("btnExplore").onclick = async () => {
       explorePage.style.display = "none";
       editorContainer.style.display = "block";
 
-      draw();
+      resetPlayer();
+      startGame();
     };
 
-    div.appendChild(btn);
-    explorePage.appendChild(div);
+    card.appendChild(btn);
+    explorePage.appendChild(card);
   });
 };
-
-// ── Tool buttons ──
-document.getElementById("btnBlock").onclick = () => currentTool = "block";
-document.getElementById("btnTriangle").onclick = () => currentTool = "triangle";
-document.getElementById("btnSpawn").onclick = () => currentTool = "spawn";
-document.getElementById("btnWin").onclick = () => currentTool = "win";
 
 // ── Publish ──
 document.getElementById("btnPublish").onclick = async () => {
@@ -212,7 +353,7 @@ document.getElementById("btnPublish").onclick = async () => {
   alert("Published!");
 };
 
- })();
+  })();
 </script>
 </body>
 </html>
