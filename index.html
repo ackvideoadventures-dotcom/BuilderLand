@@ -330,13 +330,74 @@ button { padding: 8px 12px; cursor: pointer; }
     alert("Game Loaded!");
   }
 
-  function publishGame() {
+  // ── PUBLISH COOLDOWN ─────────────────────────────────────────
+  const PUBLISH_COOLDOWN_MS = 60 * 1000; // 60 seconds
+
+  function getPublishCooldownRemaining() {
+    const last = parseInt(localStorage.getItem("lastPublishTime") || "0", 10);
+    const elapsed = Date.now() - last;
+    return Math.max(0, PUBLISH_COOLDOWN_MS - elapsed);
+  }
+
+  function startCooldownUI() {
+    const btn = document.getElementById("btnPublish");
+    function tick() {
+      const remaining = getPublishCooldownRemaining();
+      if (remaining <= 0) {
+        btn.disabled = false;
+        btn.textContent = "Publish";
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "Publish (" + Math.ceil(remaining / 1000) + "s)";
+      setTimeout(tick, 500);
+    }
+    tick();
+  }
+
+  // Initialize cooldown display on page load
+  startCooldownUI();
+
+  async function publishGame() {
+    const remaining = getPublishCooldownRemaining();
+    if (remaining > 0) {
+      alert("Please wait " + Math.ceil(remaining / 1000) + " seconds before publishing again.");
+      return;
+    }
+
     const title = document.getElementById("titleInput").value || "Untitled Game";
-    const data = { title, blocks: structuredClone(blocks), triangles: structuredClone(triangles), wins: structuredClone(wins), spawnPoint };
-    const published = JSON.parse(localStorage.getItem("publishedGames")) || [];
-    published.push(data);
-    localStorage.setItem("publishedGames", JSON.stringify(published));
-    alert("Game Published!");
+    const id = "game_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+    const data = {
+      id,
+      title,
+      publishedAt: Date.now(),
+      blocks: structuredClone(blocks),
+      triangles: structuredClone(triangles),
+      wins: structuredClone(wins),
+      spawnPoint
+    };
+
+    try {
+      // Save individual game entry to shared storage
+      const result = await window.storage.set(id, JSON.stringify(data), true);
+      if (!result) throw new Error("Storage write failed");
+
+      // Update the shared index of game IDs
+      let indexData = { ids: [] };
+      try {
+        const indexResult = await window.storage.get("publishedIndex", true);
+        if (indexResult) indexData = JSON.parse(indexResult.value);
+      } catch (e) { /* index doesn't exist yet */ }
+      indexData.ids.push(id);
+      await window.storage.set("publishedIndex", JSON.stringify(indexData), true);
+
+      localStorage.setItem("lastPublishTime", Date.now().toString());
+      startCooldownUI();
+      alert("Game Published! Others can now see it in Explore.");
+    } catch (e) {
+      console.error("Publish failed:", e);
+      alert("Failed to publish. Please try again.");
+    }
   }
 
   function shareLink() {
@@ -378,28 +439,52 @@ button { padding: 8px 12px; cursor: pointer; }
     renderExplore();
   }
 
-  function renderExplore() {
-    const games = JSON.parse(localStorage.getItem("publishedGames")) || [];
+  async function renderExplore() {
+    explorePage.innerHTML = "<h2>Published Games</h2><p><em>Loading games...</em></p>";
+    let games = [];
+    try {
+      const indexResult = await window.storage.get("publishedIndex", true);
+      if (indexResult) {
+        const indexData = JSON.parse(indexResult.value);
+        for (const id of indexData.ids) {
+          try {
+            const gameResult = await window.storage.get(id, true);
+            if (gameResult) games.push(JSON.parse(gameResult.value));
+          } catch (e) { /* skip missing */ }
+        }
+      }
+    } catch (e) { /* no index yet */ }
+
+    // Sort newest first
+    games.sort(function (a, b) { return (b.publishedAt || 0) - (a.publishedAt || 0); });
+
     explorePage.innerHTML = "<h2>Published Games</h2>";
+    const backBtn = document.createElement("button");
+    backBtn.textContent = "← Back";
+    backBtn.addEventListener("click", function () {
+      explorePage.style.display = "none";
+      home.style.display = "block";
+    });
+    explorePage.appendChild(backBtn);
+
     if (games.length === 0) {
-      explorePage.innerHTML += "<p>No games published yet.</p>";
+      explorePage.innerHTML += "<p>No games published yet. Be the first!</p>";
       return;
     }
-    games.forEach(function (g, index) {
+    games.forEach(function (g) {
       const card = document.createElement("div");
       card.className = "gameCard";
-      card.innerHTML = "<h3>" + g.title + "</h3>";
+      const date = g.publishedAt ? new Date(g.publishedAt).toLocaleString() : "";
+      card.innerHTML = "<h3>" + g.title + "</h3>" + (date ? "<small>Published: " + date + "</small>" : "");
       const btn = document.createElement("button");
       btn.textContent = "Play";
-      btn.addEventListener("click", function () { playGame(index); });
+      btn.addEventListener("click", function () { playGame(g); });
       card.appendChild(btn);
       explorePage.appendChild(card);
     });
   }
 
-  function playGame(index) {
-    const games = JSON.parse(localStorage.getItem("publishedGames")) || [];
-    const g = games[index];
+  function playGame(g) {
     blocks.length = 0; triangles.length = 0; wins.length = 0;
     blocks.push(...structuredClone(g.blocks));
     triangles.push(...structuredClone(g.triangles));
