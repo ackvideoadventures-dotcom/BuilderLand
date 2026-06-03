@@ -120,6 +120,27 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 #colorPicker { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 4px; }
 #colorPicker label { color: #aac; font-size: 0.75em; font-weight: 700; writing-mode: vertical-rl; text-orientation: mixed; letter-spacing: 1px; }
 #blockColor { width: 36px; height: 160px; border: none; border-radius: 8px; cursor: pointer; padding: 0; background: none; }
+
+/* ── Explore Accounts ── */
+#accExploreTab { margin-top: 10px; width: 100%; }
+#accExploreTab .acc-explore-header { color: #aac; font-size: 0.82em; font-weight: 700; text-align: left; margin-bottom: 10px; letter-spacing: 0.5px; }
+#accAccountsList { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+#accAccountsList::-webkit-scrollbar { width: 6px; }
+#accAccountsList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+.acc-explore-entry { display: flex; align-items: center; gap: 10px; background: #0d1b36; border-radius: 10px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.08); }
+.acc-explore-entry .acc-swatch { width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2); }
+.acc-explore-entry .acc-uname { color: #eee; font-size: 0.92em; font-weight: 700; }
+
+/* ── Players Modal (from editor) ── */
+#playersModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+#playersModal.open { display: flex; }
+#playersModalBox { background: var(--card); border: 2px solid rgba(255,255,255,0.15); border-radius: 18px; padding: 24px 28px; width: 320px; max-height: 480px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
+#playersModalBox h3 { font-family: 'Press Start 2P', monospace; font-size: 0.85em; color: #fff; margin: 0; text-align: center; }
+#playersModalList { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+#playersModalList::-webkit-scrollbar { width: 6px; }
+#playersModalList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+#btnClosePlayersModal { background: #555; color: #eee; width: 100%; }
+#btnViewPlayers { background: linear-gradient(135deg,#a78bfa,#7c3aed); color: #fff; font-size: 0.78em; padding: 6px 10px; border-radius: 8px; margin-top: 4px; width: 100%; }
 </style>
 </head>
 <body>
@@ -169,7 +190,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
         </div>
       </div>
       <button id="btnAccLogout">🚪 Log Out</button>
+      <div id="accExploreTab">
+        <div class="acc-explore-header">👥 ALL PLAYERS</div>
+        <div id="accAccountsList"></div>
+      </div>
     </div>
+  </div>
+</div>
+
+<div id="playersModal">
+  <div id="playersModalBox">
+    <h3>👥 All Players</h3>
+    <div id="playersModalList"></div>
+    <button id="btnClosePlayersModal">✕ Close</button>
   </div>
 </div>
 
@@ -206,6 +239,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
       <div id="colorPicker">
         <label>COLOR</label>
         <input type="color" id="blockColor" value="#888888" title="Block color" />
+        <button id="btnViewPlayers" title="View all players">👥</button>
       </div>
       <canvas id="editor" width="800" height="500"></canvas>
     </div>
@@ -425,6 +459,48 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
   // Initialize badge on load
   updateNameBadge();
+
+  // ── Explore Accounts helpers ──────────────────────────────────────────────
+  function renderExploreAccounts(containerId) {
+    var reg = getAllAccounts();
+    var keys = Object.keys(reg);
+    var container = document.getElementById(containerId);
+    container.innerHTML = "";
+    if (keys.length === 0) {
+      container.innerHTML = '<div style="color:#668;font-size:0.82em;padding:6px 0;">No accounts yet!</div>';
+      return;
+    }
+    keys.forEach(function(k) {
+      var a = reg[k];
+      var color = hueToHex(a.colorHue !== undefined ? a.colorHue : 120);
+      var entry = document.createElement("div");
+      entry.className = "acc-explore-entry";
+      entry.innerHTML = '<span class="acc-swatch" style="background:'+color+'"></span><span class="acc-uname">'+escapeHtml(a.username)+'</span>';
+      container.appendChild(entry);
+    });
+  }
+
+  // Patch renderAccountPage to also populate the explore list
+  var _origRenderAccountPage = renderAccountPage;
+  renderAccountPage = function() {
+    _origRenderAccountPage();
+    var acc = getAccount();
+    if (acc && acc.username) {
+      renderExploreAccounts("accAccountsList");
+    }
+  };
+
+  // ── Players Modal (from editor) ───────────────────────────────────────────
+  document.getElementById("btnViewPlayers").addEventListener("click", function() {
+    renderExploreAccounts("playersModalList");
+    document.getElementById("playersModal").classList.add("open");
+  });
+  document.getElementById("btnClosePlayersModal").addEventListener("click", function() {
+    document.getElementById("playersModal").classList.remove("open");
+  });
+  document.getElementById("playersModal").addEventListener("click", function(e) {
+    if (e.target === this) this.classList.remove("open");
+  });
 
   var selectedTool = "block", selectedSize = "normal";
   var blockColor = "#888888";
