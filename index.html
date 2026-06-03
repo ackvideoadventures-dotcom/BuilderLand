@@ -223,31 +223,34 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 <script>
 (function () {
 
-  // ── Shared persistent storage for published games ────────────────────────
+  // ── Shared server storage for published games ─────────────────────────────
   // Uses window.storage (shared: true) — all visitors see the same game list.
   // Games stored individually as "games:<id>" so writes don't overwrite each other.
 
-  // Only this account can publish to Explore
+  // ── PASTE YOUR LEVELS HERE after publishing ─────────────────────────
+  // 1. Build your level and click Publish (while logged in as HazyMan223)
+  // 2. Open DevTools Console and run:  copy(localStorage.getItem('bl_published'))
+  // 3. Paste the result inside the [ ] below, replacing any existing content
+  // 4. Save the file and push to GitHub — everyone will see your levels!
+  var HARDCODED_GAMES = [
+    // paste level data here
+  ];
+
   var OWNER_USERNAME = "HazyMan223";
 
-  async function fetchGames() {
-    try {
-      var keysResult = await window.storage.list("games:", true);
-      if (!keysResult || !keysResult.keys || keysResult.keys.length === 0) return [];
-      var games = [];
-      for (var i = 0; i < keysResult.keys.length; i++) {
-        try {
-          var entry = await window.storage.get(keysResult.keys[i], true);
-          if (entry && entry.value) games.push(JSON.parse(entry.value));
-        } catch(e) {}
-      }
-      // Sort newest first
-      games.sort(function(a,b){ return (b.publishedAt||0)-(a.publishedAt||0); });
-      return games;
-    } catch (e) {
-      console.error("Failed to load games:", e);
-      return [];
+  function fetchGames() {
+    // Load locally-published (unpushed) levels for your own preview
+    var local = [];
+    try { var r = localStorage.getItem("bl_published"); if (r) local = JSON.parse(r); } catch(e) {}
+    // Merge: hardcoded (live for everyone) + local (only you can see until pushed)
+    var all = HARDCODED_GAMES.slice().concat(local);
+    // Deduplicate by id
+    var seen = {}, deduped = [];
+    for (var i = all.length - 1; i >= 0; i--) {
+      if (!seen[all[i].id]) { seen[all[i].id] = true; deduped.unshift(all[i]); }
     }
+    deduped.sort(function(a,b){ return (b.publishedAt||0)-(a.publishedAt||0); });
+    return Promise.resolve(deduped);
   }
 
   // ── Game state ─────────────────────────────────────────────────────────────
@@ -270,10 +273,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     return false;
   }
 
-  // ── Multi-account registry ────────────────────────────────────────────────
-  // bl_accounts: { username(lowercase key) -> {username, password, colorHue} }
-  // bl_account:  currently logged-in user object (or null)
-  var accMode = "signup"; // "signup" | "login"
+  // ── Multi-account registry ──────────────────────────────────────────
+  var accMode = "signup";
 
   function getAllAccounts() {
     try { return JSON.parse(localStorage.getItem("bl_accounts")) || {}; } catch(e) { return {}; }
@@ -286,7 +287,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   }
   function saveAccount(data) {
     localStorage.setItem("bl_account", JSON.stringify(data));
-    // Also keep registry in sync
     var reg = getAllAccounts();
     reg[data.username.toLowerCase()] = { username: data.username, password: data.password, colorHue: data.colorHue };
     saveAllAccounts(reg);
@@ -297,8 +297,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     var su = document.getElementById("btnModeSignup");
     var li = document.getElementById("btnModeLogin");
     var submit = document.getElementById("btnAccSubmit");
-    var msg = document.getElementById("accMsg");
-    msg.textContent = "";
+    document.getElementById("accMsg").textContent = "";
     if (mode === "signup") {
       su.style.background = "linear-gradient(135deg,#4facfe,#00f2fe)"; su.style.color = "#0a2040";
       li.style.background = "#1a2a4a"; li.style.color = "#88aacc";
@@ -404,25 +403,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     var key = username.toLowerCase();
 
     if (accMode === "signup") {
-      // Sign Up: username must NOT already exist
-      if (reg[key]) {
-        msg.textContent = "That username is already taken. Try logging in instead!";
-        return;
-      }
-      var newAcc = { username: username, password: password, colorHue: 120 };
-      saveAccount(newAcc);
+      if (reg[key]) { msg.textContent = "That username is already taken. Try logging in instead!"; return; }
+      saveAccount({ username: username, password: password, colorHue: 120 });
       msg.className = "acc-success"; msg.textContent = "Account created! Welcome, " + username + "!";
     } else {
-      // Log In: username must exist AND password must match
-      if (!reg[key]) {
-        msg.textContent = "No account found with that username. Sign up first!";
-        return;
-      }
-      if (reg[key].password !== password) {
-        msg.textContent = "Wrong password. Try again!";
-        return;
-      }
-      // Restore full account data into active session
+      if (!reg[key]) { msg.textContent = "No account found with that username. Sign up first!"; return; }
+      if (reg[key].password !== password) { msg.textContent = "Wrong password. Try again!"; return; }
       saveAccount({ username: reg[key].username, password: reg[key].password, colorHue: reg[key].colorHue !== undefined ? reg[key].colorHue : 120 });
       msg.className = "acc-success"; msg.textContent = "Logged in! Welcome back, " + reg[key].username + "!";
     }
@@ -679,56 +665,34 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     setTimeout(()=>statusMsg.textContent="",2000);
   }
 
+
  function publishGame(){
-  // ── Owner-only gate ──────────────────────────────────────────────────────
   var acc = getAccount();
   if (!acc || acc.username !== OWNER_USERNAME) {
-    alert("Only " + OWNER_USERNAME + " can publish permanent levels to Explore!");
+    alert("Only " + OWNER_USERNAME + " can publish levels to Explore!");
     return;
   }
-
-  var rem=getCooldownRemaining();
-  if(rem>0){alert("Please wait "+Math.ceil(rem/1000)+"s before publishing again.");return;}
-
-  var title=document.getElementById("titleInput").value.trim()||"Untitled Game";
-  var btn=document.getElementById("btnPublish");
-  btn.disabled=true;
-  btn.textContent="⏳ Publishing...";
-  statusMsg.textContent="Saving to Explore...";
-
+  var title = document.getElementById("titleInput").value.trim() || "Untitled Game";
+  var btn = document.getElementById("btnPublish");
   var id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-
-  var game={
-    id: id,
-    title:title,
-    publishedAt:Date.now(),
-    author: acc.username,
-    blocks:JSON.parse(JSON.stringify(blocks)),
-    triangles:JSON.parse(JSON.stringify(triangles)),
-    wins:JSON.parse(JSON.stringify(wins)),
-    asphalts:JSON.parse(JSON.stringify(asphalts)),
-    ices:JSON.parse(JSON.stringify(ices)),
-    bounces:JSON.parse(JSON.stringify(bounces)),
-    spawnPoint:spawnPoint,
-    bgColor:bgColor
+  var game = {
+    id: id, title: title, publishedAt: Date.now(), author: acc.username,
+    blocks:    JSON.parse(JSON.stringify(blocks)),
+    triangles: JSON.parse(JSON.stringify(triangles)),
+    wins:      JSON.parse(JSON.stringify(wins)),
+    asphalts:  JSON.parse(JSON.stringify(asphalts)),
+    ices:      JSON.parse(JSON.stringify(ices)),
+    bounces:   JSON.parse(JSON.stringify(bounces)),
+    spawnPoint: spawnPoint, bgColor: bgColor
   };
-
-  window.storage.set("games:"+id, JSON.stringify(game), true).then(function(){
-    localStorage.setItem("lastPublishTime", Date.now());
-    startCooldownUI();
-    statusMsg.textContent = "✅ Published to Explore!";
-    setTimeout(function(){statusMsg.textContent="";}, 3000);
-    btn.disabled = false;
-    btn.textContent = "🚀 Publish";
-  }).catch(function(err){
-    console.error(err);
-    alert("Publish failed! Storage error.");
-    btn.disabled = false;
-    btn.textContent = "🚀 Publish";
-  });
+  var existing = [];
+  try { var r = localStorage.getItem("bl_published"); if (r) existing = JSON.parse(r); } catch(e) {}
+  existing.push(game);
+  localStorage.setItem("bl_published", JSON.stringify(existing));
+  statusMsg.textContent = "✅ Saved! In DevTools Console run: copy(localStorage.getItem('bl_published')) then paste into HARDCODED_GAMES in the HTML and push to GitHub.";
+  setTimeout(function(){ statusMsg.textContent = ""; }, 14000);
+  btn.textContent = "🚀 Publish";
 }
-
-
 
   function shareLink(){
     var title=document.getElementById("titleInput").value||"Untitled Game";
@@ -778,7 +742,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
       games.forEach(function(g){
         var card=document.createElement("div"); card.className="gameCard";
         var date=g.publishedAt?new Date(g.publishedAt).toLocaleString():"";
-        card.innerHTML='<h3>'+escapeHtml(g.title)+'</h3>'+(g.author?'<small>👤 '+escapeHtml(g.author)+'</small> ':'')+(date?'<small>📅 '+date+'</small>':'');
+        card.innerHTML='<h3>'+escapeHtml(g.title)+'</h3>'+(date?'<small>📅 '+date+'</small>':'');
         var btn=document.createElement("button");
         btn.textContent="▶️ Play"; btn.className="play-btn";
         btn.onclick=function(){playGame(g);}; card.appendChild(btn); explorePage.appendChild(card);
@@ -797,9 +761,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     if(g.asphalts)asphalts.push.apply(asphalts,JSON.parse(JSON.stringify(g.asphalts)));
     if(g.ices)ices.push.apply(ices,JSON.parse(JSON.stringify(g.ices)));
     if(g.bounces)bounces.push.apply(bounces,JSON.parse(JSON.stringify(g.bounces)));
+    if(g.bgColor)bgColor=g.bgColor;
     spawnPoint=g.spawnPoint||null;
     if(spawnPoint){player.spawnX=spawnPoint.x;player.spawnY=spawnPoint.y;player.x=player.spawnX;player.y=player.spawnY;}
-    if(g.bgColor)bgColor=g.bgColor;
     hasWon=false; explorePage.style.display="none"; editorContainer.style.display="block"; loopRunning=false; cameraX=0; startLoop();
   }
 
